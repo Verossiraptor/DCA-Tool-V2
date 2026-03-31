@@ -42,81 +42,59 @@
     .card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 20px; margin-bottom: 12px; }
     .lbl { font-family: 'DM Sans', sans-serif; font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: #444; margin-bottom: 14px; }
 
-    /* Live drawdown display */
-    .live-card { border-radius: 16px; padding: 20px; margin-bottom: 12px; background: #0e0e0e; border: 1px solid #1a1a1a; }
+    .live-card { border-radius: 16px; padding: 20px; margin-bottom: 12px; background: #0e0e0e; border: 1px solid #1a1a1a; transition: background 0.4s, border-color 0.4s; }
     .live-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px; }
     .big-pct { font-size: 64px; font-weight: 400; line-height: 1; transition: color 0.4s; }
     .refresh-btn {
-      background: #1a1a1a;
-      border: 1px solid #2a2a2a;
-      color: #555;
-      border-radius: 8px;
-      padding: 8px 12px;
-      font-family: 'DM Sans', sans-serif;
-      font-size: 12px;
-      cursor: pointer;
-      margin-top: 6px;
-      transition: all 0.2s;
+      background: #1a1a1a; border: 1px solid #2a2a2a; color: #555;
+      border-radius: 8px; padding: 8px 12px;
+      font-family: 'DM Sans', sans-serif; font-size: 12px;
+      cursor: pointer; margin-top: 6px; transition: all 0.2s;
+      -webkit-appearance: none;
     }
     .refresh-btn:active { background: #222; color: #888; }
-    .refresh-btn.spinning { animation: spin 0.8s linear infinite; }
+    .spinning { animation: spin 0.8s linear infinite; display: inline-block; }
     @keyframes spin { to { transform: rotate(360deg); } }
 
     .tier-badge { display: flex; align-items: center; gap: 8px; margin-top: 10px; min-height: 22px; }
     .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
     .tier-name { font-family: 'DM Sans', sans-serif; font-size: 14px; }
     .tier-mult { font-size: 13px; color: #555; }
-
     .meta-line { font-size: 11px; color: #333; margin-top: 8px; line-height: 1.6; }
-    .meta-line a { color: #2a4a2a; text-decoration: none; }
-
     .status-msg { font-size: 12px; color: #555; margin-top: 8px; font-family: 'DM Sans', sans-serif; }
-    .status-msg.error { color: #7a3333; }
+    .status-msg.error { color: #7a2020; }
 
-    /* Settings */
     .setting { margin-bottom: 18px; }
     .setting:last-child { margin-bottom: 0; }
     .setting-label { font-size: 12px; color: #555; margin-bottom: 8px; display: flex; justify-content: space-between; }
-
     .money-input { display: flex; align-items: center; gap: 8px; }
     .money-sign { color: #444; font-size: 18px; }
     input[type=number].base-input {
-      font-family: 'DM Mono', monospace;
-      font-size: 18px;
-      background: #0e0e0e;
-      border: 1px solid #1e1e1e;
-      color: #d4d4d4;
-      padding: 10px 14px;
-      border-radius: 10px;
-      width: 100%;
-      outline: none;
-      -webkit-appearance: none;
+      font-family: 'DM Mono', monospace; font-size: 18px;
+      background: #0e0e0e; border: 1px solid #1e1e1e; color: #d4d4d4;
+      padding: 10px 14px; border-radius: 10px; width: 100%;
+      outline: none; -webkit-appearance: none;
     }
-
     input[type=range] {
       -webkit-appearance: none; appearance: none;
       height: 4px; background: #222; border-radius: 2px; outline: none; width: 100%;
     }
     input[type=range]::-webkit-slider-thumb {
-      -webkit-appearance: none;
-      width: 22px; height: 22px; border-radius: 50%;
-      background: var(--green); cursor: pointer;
+      -webkit-appearance: none; width: 22px; height: 22px;
+      border-radius: 50%; background: var(--green); cursor: pointer;
     }
 
-    /* Result */
     .result-card { border-radius: 16px; padding: 20px; margin-bottom: 12px; display: none; }
     .result-card.show { display: block; animation: fadeIn 0.3s ease; }
     .total-row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 18px; }
     .total-label { font-family: 'DM Sans', sans-serif; font-size: 13px; color: #555; }
     .total-amount { font-size: 40px; font-weight: 500; }
-
     .split { display: flex; gap: 10px; }
     .split-box { flex: 1; background: rgba(0,0,0,0.3); border-radius: 10px; padding: 14px; }
     .split-title { font-family: 'DM Sans', sans-serif; font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 5px; }
     .split-amount { font-size: 22px; }
     .split-pct { font-size: 10px; margin-top: 3px; opacity: 0.5; }
 
-    /* Tier table */
     .tier-row { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid #141414; transition: opacity 0.2s; }
     .tier-row:last-child { border-bottom: none; }
     .tier-row .t-name { flex: 1; font-family: 'DM Sans', sans-serif; font-size: 13px; color: #777; }
@@ -138,7 +116,6 @@
     <h1>S&P 500 Contribution Tool</h1>
   </div>
 
-  <!-- Live drawdown -->
   <div class="live-card" id="liveCard">
     <div class="lbl">Current drawdown from ATH <span id="fetchTime" style="color:#222;font-family:'DM Sans',sans-serif;font-size:9px"></span></div>
     <div class="live-top">
@@ -147,10 +124,9 @@
     </div>
     <div class="tier-badge" id="tierBadge"></div>
     <div class="meta-line" id="metaLine"></div>
-    <div class="status-msg" id="statusMsg">Tap refresh to load live data</div>
+    <div class="status-msg" id="statusMsg">Loading…</div>
   </div>
 
-  <!-- Settings -->
   <div class="card">
     <div class="lbl">Settings</div>
     <div class="setting">
@@ -161,15 +137,11 @@
       </div>
     </div>
     <div class="setting">
-      <div class="setting-label">
-        Allocation
-        <span id="splitLabel"></span>
-      </div>
+      <div class="setting-label">Allocation <span id="splitLabel"></span></div>
       <input type="range" id="split" min="50" max="100" step="5" value="70" oninput="updateUI()" />
     </div>
   </div>
 
-  <!-- Result -->
   <div class="result-card" id="result">
     <div class="total-row">
       <span class="total-label">This month</span>
@@ -189,7 +161,6 @@
     </div>
   </div>
 
-  <!-- Tier table -->
   <div class="card">
     <div class="lbl" id="tierTableLbl">All tiers</div>
     <div id="tierTable"></div>
@@ -197,7 +168,7 @@
 
   <div class="footer">
     Not financial advice · Data via Yahoo Finance<br>
-    <a href="https://slickcharts.com/sp500/drawdowns" target="_blank">slickcharts.com/sp500/drawdowns</a> to verify
+    <a href="https://slickcharts.com/sp500/drawdowns" target="_blank">Verify on Slickcharts</a>
   </div>
 
 </div>
@@ -218,33 +189,30 @@
   async function fetchDrawdown() {
     const btn = document.getElementById("refreshBtn");
     const status = document.getElementById("statusMsg");
-    btn.classList.add("spinning");
+    btn.innerHTML = '<span class="spinning">↻</span>';
+    btn.disabled = true;
     status.className = "status-msg";
     status.textContent = "Fetching live data…";
 
+    const yahooUrl = "https://query1.finance.yahoo.com/v8/finance/chart/%5EGSPC?interval=1mo&range=5y";
+    const proxyUrl = "https://corsproxy.io/?" + encodeURIComponent(yahooUrl);
+
     try {
-      // Fetch 5 years of monthly S&P 500 data from Yahoo Finance
-      const url = "https://query1.finance.yahoo.com/v8/finance/chart/%5EGSPC?interval=1mo&range=5y&cors=true";
-      const res = await fetch(url, { headers: { "Accept": "application/json" } });
+      const res = await fetch(proxyUrl);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
 
       const chart = data.chart.result[0];
-      const closes = chart.indicators.quote[0].close.filter(v => v !== null);
-      const currentPrice = closes[closes.length - 1];
-      const ath = Math.max(...closes);
-      const drawdown = ((ath - currentPrice) / ath) * 100;
+      const closes = chart.indicators.quote[0].close.filter(v => v !== null && v > 0);
+      const currentMeta = chart.meta.regularMarketPrice;
+      const allPrices = [...closes, currentMeta];
+      const ath = Math.max(...allPrices);
+      const drawdown = Math.max(0, ((ath - currentMeta) / ath) * 100);
 
-      // Also get more precise current price from meta
-      const currentMeta = chart.meta.regularMarketPrice || currentPrice;
-      const athFinal = Math.max(ath, currentMeta);
-      const drawdownFinal = Math.max(0, ((athFinal - currentMeta) / athFinal) * 100);
+      currentDrawdown = drawdown;
 
-      currentDrawdown = drawdownFinal;
-
-      // Update UI
-      const tier = getTier(drawdownFinal);
-      document.getElementById("bigPct").textContent = drawdownFinal.toFixed(1) + "%";
+      const tier = getTier(drawdown);
+      document.getElementById("bigPct").textContent = drawdown.toFixed(1) + "%";
       document.getElementById("bigPct").style.color = tier.accent;
       document.getElementById("liveCard").style.background = tier.bg;
       document.getElementById("liveCard").style.borderColor = tier.border;
@@ -255,23 +223,23 @@
         <span class="tier-mult">· ${tier.mult}× multiplier</span>`;
 
       document.getElementById("metaLine").innerHTML =
-        `$${currentMeta.toLocaleString("en-US", {maximumFractionDigits:2})} now &nbsp;·&nbsp; ATH $${athFinal.toLocaleString("en-US", {maximumFractionDigits:2})} (5yr)`;
+        `$${currentMeta.toLocaleString("en-US", {maximumFractionDigits:2})} now &nbsp;·&nbsp; ATH $${ath.toLocaleString("en-US", {maximumFractionDigits:2})} (5yr)`;
 
       const now = new Date();
       document.getElementById("fetchTime").textContent =
-        `· ${now.toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"})}`;
+        `· updated ${now.toLocaleTimeString([], {hour:"2-digit", minute:"2-digit"})}`;
 
       status.textContent = "";
-
       updateUI();
 
     } catch (err) {
       status.className = "status-msg error";
-      status.textContent = "Couldn't load data — check connection. (" + err.message + ")";
+      status.textContent = "Couldn't load — check connection. (" + err.message + ")";
       document.getElementById("bigPct").style.color = "#333";
     }
 
-    btn.classList.remove("spinning");
+    btn.innerHTML = "↻ Refresh";
+    btn.disabled = false;
   }
 
   function updateUI() {
@@ -282,7 +250,6 @@
     document.getElementById("splitLabel").innerHTML =
       `<span style="color:#86efac">${sp}% S&P</span> · <span style="color:#60a5fa">${vt}% VT</span>`;
 
-    // Tier table
     document.getElementById("tierTable").innerHTML = TIERS.map(t => {
       const isActive = currentDrawdown !== null && currentDrawdown >= t.min && currentDrawdown < t.max;
       return `<div class="tier-row" style="opacity:${isActive ? 1 : 0.3}">
@@ -296,7 +263,6 @@
 
     document.getElementById("tierTableLbl").textContent = `All tiers · base ${fmt(base)}`;
 
-    // Contribution result
     const result = document.getElementById("result");
     if (currentDrawdown !== null && base > 0) {
       const tier = getTier(currentDrawdown);
@@ -318,7 +284,6 @@
     }
   }
 
-  // Auto-fetch on load
   fetchDrawdown();
   updateUI();
 </script>
