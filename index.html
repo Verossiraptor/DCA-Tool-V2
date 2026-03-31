@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="DCA Tool" />
+  <meta name="theme-color" content="#080808" />
+  <title>DCA Tool</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;600;700&display=swap');
+
+    :root {
+      --green: #86efac;
+      --yellow: #fde047;
+      --orange: #fb923c;
+      --red: #f87171;
+      --blue: #60a5fa;
+      --bg: #080808;
+      --card: #111;
+      --border: #1e1e1e;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+    body {
+      background: var(--bg);
+      color: #d4d4d4;
+      font-family: 'DM Mono', 'Fira Code', monospace;
+      min-height: 100vh;
+      padding: env(safe-area-inset-top, 20px) 16px env(safe-area-inset-bottom, 34px);
+      padding-top: max(env(safe-area-inset-top), 24px);
+    }
+
+    .wrap { max-width: 440px; margin: 0 auto; padding-bottom: 40px; }
+
+    .header { text-align: center; padding: 16px 0 22px; }
+    .header .eyebrow { font-family: 'DM Sans', sans-serif; font-size: 10px; letter-spacing: 0.2em; color: #333; text-transform: uppercase; margin-bottom: 6px; }
+    .header h1 { font-family: 'DM Sans', sans-serif; font-size: 22px; font-weight: 700; color: #eee; letter-spacing: -0.02em; }
+
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 20px; margin-bottom: 12px; }
+    .lbl { font-family: 'DM Sans', sans-serif; font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: #444; margin-bottom: 14px; }
+
+    /* Live drawdown display */
+    .live-card { border-radius: 16px; padding: 20px; margin-bottom: 12px; background: #0e0e0e; border: 1px solid #1a1a1a; }
+    .live-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px; }
+    .big-pct { font-size: 64px; font-weight: 400; line-height: 1; transition: color 0.4s; }
+    .refresh-btn {
+      background: #1a1a1a;
+      border: 1px solid #2a2a2a;
+      color: #555;
+      border-radius: 8px;
+      padding: 8px 12px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 12px;
+      cursor: pointer;
+      margin-top: 6px;
+      transition: all 0.2s;
+    }
+    .refresh-btn:active { background: #222; color: #888; }
+    .refresh-btn.spinning { animation: spin 0.8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .tier-badge { display: flex; align-items: center; gap: 8px; margin-top: 10px; min-height: 22px; }
+    .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .tier-name { font-family: 'DM Sans', sans-serif; font-size: 14px; }
+    .tier-mult { font-size: 13px; color: #555; }
+
+    .meta-line { font-size: 11px; color: #333; margin-top: 8px; line-height: 1.6; }
+    .meta-line a { color: #2a4a2a; text-decoration: none; }
+
+    .status-msg { font-size: 12px; color: #555; margin-top: 8px; font-family: 'DM Sans', sans-serif; }
+    .status-msg.error { color: #7a3333; }
+
+    /* Settings */
+    .setting { margin-bottom: 18px; }
+    .setting:last-child { margin-bottom: 0; }
+    .setting-label { font-size: 12px; color: #555; margin-bottom: 8px; display: flex; justify-content: space-between; }
+
+    .money-input { display: flex; align-items: center; gap: 8px; }
+    .money-sign { color: #444; font-size: 18px; }
+    input[type=number].base-input {
+      font-family: 'DM Mono', monospace;
+      font-size: 18px;
+      background: #0e0e0e;
+      border: 1px solid #1e1e1e;
+      color: #d4d4d4;
+      padding: 10px 14px;
+      border-radius: 10px;
+      width: 100%;
+      outline: none;
+      -webkit-appearance: none;
+    }
+
+    input[type=range] {
+      -webkit-appearance: none; appearance: none;
+      height: 4px; background: #222; border-radius: 2px; outline: none; width: 100%;
+    }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 22px; height: 22px; border-radius: 50%;
+      background: var(--green); cursor: pointer;
+    }
+
+    /* Result */
+    .result-card { border-radius: 16px; padding: 20px; margin-bottom: 12px; display: none; }
+    .result-card.show { display: block; animation: fadeIn 0.3s ease; }
+    .total-row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 18px; }
+    .total-label { font-family: 'DM Sans', sans-serif; font-size: 13px; color: #555; }
+    .total-amount { font-size: 40px; font-weight: 500; }
+
+    .split { display: flex; gap: 10px; }
+    .split-box { flex: 1; background: rgba(0,0,0,0.3); border-radius: 10px; padding: 14px; }
+    .split-title { font-family: 'DM Sans', sans-serif; font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 5px; }
+    .split-amount { font-size: 22px; }
+    .split-pct { font-size: 10px; margin-top: 3px; opacity: 0.5; }
+
+    /* Tier table */
+    .tier-row { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid #141414; transition: opacity 0.2s; }
+    .tier-row:last-child { border-bottom: none; }
+    .tier-row .t-name { flex: 1; font-family: 'DM Sans', sans-serif; font-size: 13px; color: #777; }
+    .tier-row .t-range { font-size: 11px; color: #444; width: 50px; text-align: right; }
+    .tier-row .t-mult { font-size: 12px; width: 30px; text-align: right; }
+    .tier-row .t-amt { font-size: 12px; color: #555; width: 68px; text-align: right; }
+
+    .footer { font-size: 10px; color: #1e1e1e; text-align: center; margin-top: 20px; font-family: 'DM Sans', sans-serif; line-height: 1.7; }
+    .footer a { color: #2a2a2a; }
+
+    @keyframes fadeIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="header">
+    <div class="eyebrow">Tiered DCA</div>
+    <h1>S&P 500 Contribution Tool</h1>
+  </div>
+
+  <!-- Live drawdown -->
+  <div class="live-card" id="liveCard">
+    <div class="lbl">Current drawdown from ATH <span id="fetchTime" style="color:#222;font-family:'DM Sans',sans-serif;font-size:9px"></span></div>
+    <div class="live-top">
+      <div class="big-pct" id="bigPct" style="color:#333">—</div>
+      <button class="refresh-btn" id="refreshBtn" onclick="fetchDrawdown()">↻ Refresh</button>
+    </div>
+    <div class="tier-badge" id="tierBadge"></div>
+    <div class="meta-line" id="metaLine"></div>
+    <div class="status-msg" id="statusMsg">Tap refresh to load live data</div>
+  </div>
+
+  <!-- Settings -->
+  <div class="card">
+    <div class="lbl">Settings</div>
+    <div class="setting">
+      <div class="setting-label">Base monthly contribution</div>
+      <div class="money-input">
+        <span class="money-sign">$</span>
+        <input type="number" class="base-input" id="base" value="500" min="0" step="50" oninput="updateUI()" />
+      </div>
+    </div>
+    <div class="setting">
+      <div class="setting-label">
+        Allocation
+        <span id="splitLabel"></span>
+      </div>
+      <input type="range" id="split" min="50" max="100" step="5" value="70" oninput="updateUI()" />
+    </div>
+  </div>
+
+  <!-- Result -->
+  <div class="result-card" id="result">
+    <div class="total-row">
+      <span class="total-label">This month</span>
+      <span class="total-amount" id="totalAmt"></span>
+    </div>
+    <div class="split">
+      <div class="split-box" style="border:1px solid #1a3a1a">
+        <div class="split-title" style="color:#4a7a4a">S&P 500</div>
+        <div class="split-amount" style="color:#86efac" id="spAmt"></div>
+        <div class="split-pct" id="spPct"></div>
+      </div>
+      <div class="split-box" style="border:1px solid #1a2e4a">
+        <div class="split-title" style="color:#2a4a7a">VT</div>
+        <div class="split-amount" style="color:#60a5fa" id="vtAmt"></div>
+        <div class="split-pct" id="vtPct"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tier table -->
+  <div class="card">
+    <div class="lbl" id="tierTableLbl">All tiers</div>
+    <div id="tierTable"></div>
+  </div>
+
+  <div class="footer">
+    Not financial advice · Data via Yahoo Finance<br>
+    <a href="https://slickcharts.com/sp500/drawdowns" target="_blank">slickcharts.com/sp500/drawdowns</a> to verify
+  </div>
+
+</div>
+
+<script>
+  const TIERS = [
+    { label: "Near ATH",    range: "< 5%",   min: 0,  max: 5,        mult: 1,    accent: "#86efac", bg: "#0d1f0d", border: "#1a3a1a" },
+    { label: "Mild Dip",    range: "5–10%",  min: 5,  max: 10,       mult: 1.75, accent: "#fde047", bg: "#1a1800", border: "#3a3400" },
+    { label: "Correction",  range: "10–20%", min: 10, max: 20,       mult: 2.5,  accent: "#fb923c", bg: "#1f0e00", border: "#3a1e00" },
+    { label: "Bear Market", range: "20%+",   min: 20, max: Infinity, mult: 3.5,  accent: "#f87171", bg: "#1f0a0a", border: "#3a1414" },
+  ];
+
+  let currentDrawdown = null;
+
+  function fmt(n) { return "$" + Math.round(n).toLocaleString("en-US"); }
+  function getTier(d) { return TIERS.find(t => d >= t.min && d < t.max); }
+
+  async function fetchDrawdown() {
+    const btn = document.getElementById("refreshBtn");
+    const status = document.getElementById("statusMsg");
+    btn.classList.add("spinning");
+    status.className = "status-msg";
+    status.textContent = "Fetching live data…";
+
+    try {
+      // Fetch 5 years of monthly S&P 500 data from Yahoo Finance
+      const url = "https://query1.finance.yahoo.com/v8/finance/chart/%5EGSPC?interval=1mo&range=5y&cors=true";
+      const res = await fetch(url, { headers: { "Accept": "application/json" } });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+
+      const chart = data.chart.result[0];
+      const closes = chart.indicators.quote[0].close.filter(v => v !== null);
+      const currentPrice = closes[closes.length - 1];
+      const ath = Math.max(...closes);
+      const drawdown = ((ath - currentPrice) / ath) * 100;
+
+      // Also get more precise current price from meta
+      const currentMeta = chart.meta.regularMarketPrice || currentPrice;
+      const athFinal = Math.max(ath, currentMeta);
+      const drawdownFinal = Math.max(0, ((athFinal - currentMeta) / athFinal) * 100);
+
+      currentDrawdown = drawdownFinal;
+
+      // Update UI
+      const tier = getTier(drawdownFinal);
+      document.getElementById("bigPct").textContent = drawdownFinal.toFixed(1) + "%";
+      document.getElementById("bigPct").style.color = tier.accent;
+      document.getElementById("liveCard").style.background = tier.bg;
+      document.getElementById("liveCard").style.borderColor = tier.border;
+
+      document.getElementById("tierBadge").innerHTML = `
+        <div class="dot" style="background:${tier.accent}"></div>
+        <span class="tier-name" style="color:${tier.accent}">${tier.label}</span>
+        <span class="tier-mult">· ${tier.mult}× multiplier</span>`;
+
+      document.getElementById("metaLine").innerHTML =
+        `$${currentMeta.toLocaleString("en-US", {maximumFractionDigits:2})} now &nbsp;·&nbsp; ATH $${athFinal.toLocaleString("en-US", {maximumFractionDigits:2})} (5yr)`;
+
+      const now = new Date();
+      document.getElementById("fetchTime").textContent =
+        `· ${now.toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"})}`;
+
+      status.textContent = "";
+
+      updateUI();
+
+    } catch (err) {
+      status.className = "status-msg error";
+      status.textContent = "Couldn't load data — check connection. (" + err.message + ")";
+      document.getElementById("bigPct").style.color = "#333";
+    }
+
+    btn.classList.remove("spinning");
+  }
+
+  function updateUI() {
+    const base = parseFloat(document.getElementById("base").value) || 0;
+    const sp = parseInt(document.getElementById("split").value);
+    const vt = 100 - sp;
+
+    document.getElementById("splitLabel").innerHTML =
+      `<span style="color:#86efac">${sp}% S&P</span> · <span style="color:#60a5fa">${vt}% VT</span>`;
+
+    // Tier table
+    document.getElementById("tierTable").innerHTML = TIERS.map(t => {
+      const isActive = currentDrawdown !== null && currentDrawdown >= t.min && currentDrawdown < t.max;
+      return `<div class="tier-row" style="opacity:${isActive ? 1 : 0.3}">
+        <div class="dot" style="background:${t.accent}"></div>
+        <div class="t-name">${t.label}</div>
+        <div class="t-range">${t.range}</div>
+        <div class="t-mult" style="color:${t.accent}">${t.mult}×</div>
+        <div class="t-amt">${fmt(base * t.mult)}</div>
+      </div>`;
+    }).join("");
+
+    document.getElementById("tierTableLbl").textContent = `All tiers · base ${fmt(base)}`;
+
+    // Contribution result
+    const result = document.getElementById("result");
+    if (currentDrawdown !== null && base > 0) {
+      const tier = getTier(currentDrawdown);
+      const total = Math.round(base * tier.mult);
+      const spAmt = Math.round(total * sp / 100);
+      const vtAmt = total - spAmt;
+
+      result.style.background = tier.bg;
+      result.style.border = `1px solid ${tier.border}`;
+      document.getElementById("totalAmt").textContent = fmt(total);
+      document.getElementById("totalAmt").style.color = tier.accent;
+      document.getElementById("spAmt").textContent = fmt(spAmt);
+      document.getElementById("vtAmt").textContent = fmt(vtAmt);
+      document.getElementById("spPct").textContent = sp + "%";
+      document.getElementById("vtPct").textContent = vt + "%";
+      if (!result.classList.contains("show")) result.classList.add("show");
+    } else {
+      result.classList.remove("show");
+    }
+  }
+
+  // Auto-fetch on load
+  fetchDrawdown();
+  updateUI();
+</script>
+</body>
+</html>
