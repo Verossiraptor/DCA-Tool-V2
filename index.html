@@ -11,21 +11,10 @@
   <style>
     @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;600;700&display=swap');
 
-    :root {
-      --green: #86efac;
-      --yellow: #fde047;
-      --orange: #fb923c;
-      --red: #f87171;
-      --blue: #60a5fa;
-      --bg: #080808;
-      --card: #111;
-      --border: #1e1e1e;
-    }
-
     * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
     body {
-      background: var(--bg);
+      background: #080808;
       color: #d4d4d4;
       font-family: 'DM Mono', 'Fira Code', monospace;
       min-height: 100vh;
@@ -35,6 +24,214 @@
 
     .wrap { max-width: 440px; margin: 0 auto; padding-bottom: 40px; }
 
+    .header { text-align: center; padding: 16px 0 24px; }
+    .header .eyebrow { font-family: 'DM Sans', sans-serif; font-size: 10px; letter-spacing: 0.2em; color: #333; text-transform: uppercase; margin-bottom: 6px; }
+    .header h1 { font-family: 'DM Sans', sans-serif; font-size: 22px; font-weight: 700; color: #eee; letter-spacing: -0.02em; }
+
+    .card { background: #111; border: 1px solid #1e1e1e; border-radius: 16px; padding: 20px; margin-bottom: 12px; }
+    .lbl { font-family: 'DM Sans', sans-serif; font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: #444; margin-bottom: 14px; }
+
+    /* Drawdown input */
+    .drawdown-wrap { display: flex; align-items: baseline; gap: 6px; }
+    #drawdown {
+      font-family: 'DM Mono', monospace;
+      font-size: 56px;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: #f0f0f0;
+      width: 100%;
+      caret-color: #86efac;
+      -webkit-appearance: none;
+    }
+    #drawdown::placeholder { color: #222; }
+    .pct-sign { font-size: 30px; color: #2a2a2a; }
+
+    .tier-badge { display: flex; align-items: center; gap: 8px; margin-top: 10px; min-height: 22px; }
+    .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .tier-name { font-family: 'DM Sans', sans-serif; font-size: 14px; }
+    .tier-mult { font-size: 13px; color: #555; }
+
+    /* Settings */
+    .setting { margin-bottom: 18px; }
+    .setting:last-child { margin-bottom: 0; }
+    .setting-label { font-size: 12px; color: #555; margin-bottom: 8px; display: flex; justify-content: space-between; }
+    .money-input { display: flex; align-items: center; gap: 8px; }
+    .money-sign { color: #444; font-size: 18px; }
+    input[type=number].base-input {
+      font-family: 'DM Mono', monospace; font-size: 18px;
+      background: #0e0e0e; border: 1px solid #1e1e1e; color: #d4d4d4;
+      padding: 10px 14px; border-radius: 10px; width: 100%;
+      outline: none; -webkit-appearance: none;
+    }
+    input[type=range] {
+      -webkit-appearance: none; appearance: none;
+      height: 4px; background: #222; border-radius: 2px; outline: none; width: 100%;
+    }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none; width: 24px; height: 24px;
+      border-radius: 50%; background: #86efac; cursor: pointer;
+    }
+
+    /* Result */
+    .result-card { border-radius: 16px; padding: 20px; margin-bottom: 12px; display: none; }
+    .result-card.show { display: block; animation: fadeIn 0.3s ease; }
+    .total-row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 18px; }
+    .total-label { font-family: 'DM Sans', sans-serif; font-size: 13px; color: #555; }
+    .total-amount { font-size: 40px; font-weight: 500; }
+    .split { display: flex; gap: 10px; }
+    .split-box { flex: 1; background: rgba(0,0,0,0.3); border-radius: 10px; padding: 14px; }
+    .split-title { font-family: 'DM Sans', sans-serif; font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 5px; }
+    .split-amount { font-size: 22px; }
+    .split-pct { font-size: 10px; margin-top: 3px; opacity: 0.5; }
+
+    /* Tier table */
+    .tier-row { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid #141414; transition: opacity 0.2s; }
+    .tier-row:last-child { border-bottom: none; }
+    .t-name { flex: 1; font-family: 'DM Sans', sans-serif; font-size: 13px; color: #777; }
+    .t-range { font-size: 11px; color: #444; width: 50px; text-align: right; }
+    .t-mult { font-size: 12px; width: 30px; text-align: right; }
+    .t-amt { font-size: 12px; color: #555; width: 68px; text-align: right; }
+
+    .footer { font-size: 10px; color: #222; text-align: center; margin-top: 20px; font-family: 'DM Sans', sans-serif; line-height: 1.8; }
+    .footer a { color: #333; text-decoration: none; }
+
+    @keyframes fadeIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="header">
+    <div class="eyebrow">Tiered DCA</div>
+    <h1>S&P 500 Contribution Tool</h1>
+  </div>
+
+  <!-- Drawdown input -->
+  <div class="card">
+    <div class="lbl">Enter drawdown % from ATH</div>
+    <div class="drawdown-wrap">
+      <input id="drawdown" type="number" inputmode="decimal" min="0" max="100" step="0.1" placeholder="0.0" oninput="update()" />
+      <span class="pct-sign">%</span>
+    </div>
+    <div class="tier-badge" id="tierBadge"></div>
+  </div>
+
+  <!-- Settings -->
+  <div class="card">
+    <div class="lbl">Settings</div>
+    <div class="setting">
+      <div class="setting-label">Base monthly contribution</div>
+      <div class="money-input">
+        <span class="money-sign">$</span>
+        <input type="number" class="base-input" id="base" value="500" min="0" step="50" oninput="update()" />
+      </div>
+    </div>
+    <div class="setting">
+      <div class="setting-label">Allocation <span id="splitLabel"></span></div>
+      <input type="range" id="split" min="50" max="100" step="5" value="70" oninput="update()" />
+    </div>
+  </div>
+
+  <!-- Result -->
+  <div class="result-card" id="result">
+    <div class="total-row">
+      <span class="total-label">This month</span>
+      <span class="total-amount" id="totalAmt"></span>
+    </div>
+    <div class="split">
+      <div class="split-box" style="border:1px solid #1a3a1a">
+        <div class="split-title" style="color:#4a7a4a">S&P 500</div>
+        <div class="split-amount" style="color:#86efac" id="spAmt"></div>
+        <div class="split-pct" id="spPct"></div>
+      </div>
+      <div class="split-box" style="border:1px solid #1a2e4a">
+        <div class="split-title" style="color:#2a4a7a">VT</div>
+        <div class="split-amount" style="color:#60a5fa" id="vtAmt"></div>
+        <div class="split-pct" id="vtPct"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tier table -->
+  <div class="card">
+    <div class="lbl" id="tierTableLbl">All tiers</div>
+    <div id="tierTable"></div>
+  </div>
+
+  <div class="footer">
+    Not financial advice<br>
+    <a href="https://slickcharts.com/sp500/drawdowns" target="_blank">slickcharts.com/sp500/drawdowns</a>
+  </div>
+
+</div>
+
+<script>
+  const TIERS = [
+    { label: "Near ATH",    range: "< 5%",   min: 0,  max: 5,        mult: 1,    accent: "#86efac", bg: "#0d1f0d", border: "#1a3a1a" },
+    { label: "Mild Dip",    range: "5–10%",  min: 5,  max: 10,       mult: 1.75, accent: "#fde047", bg: "#1a1800", border: "#3a3400" },
+    { label: "Correction",  range: "10–20%", min: 10, max: 20,       mult: 2.5,  accent: "#fb923c", bg: "#1f0e00", border: "#3a1e00" },
+    { label: "Bear Market", range: "20%+",   min: 20, max: Infinity, mult: 3.5,  accent: "#f87171", bg: "#1f0a0a", border: "#3a1414" },
+  ];
+
+  function fmt(n) { return "$" + Math.round(n).toLocaleString("en-US"); }
+  function getTier(d) { return TIERS.find(t => d >= t.min && d < t.max); }
+
+  function update() {
+    const d = parseFloat(document.getElementById("drawdown").value);
+    const base = parseFloat(document.getElementById("base").value) || 0;
+    const sp = parseInt(document.getElementById("split").value);
+    const vt = 100 - sp;
+
+    document.getElementById("splitLabel").innerHTML =
+      `<span style="color:#86efac">${sp}% S&P</span> · <span style="color:#60a5fa">${vt}% VT</span>`;
+
+    document.getElementById("tierTableLbl").textContent = `All tiers · base ${fmt(base)}`;
+    document.getElementById("tierTable").innerHTML = TIERS.map(t => {
+      const active = !isNaN(d) && d >= t.min && d < t.max;
+      return `<div class="tier-row" style="opacity:${active ? 1 : 0.28}">
+        <div class="dot" style="background:${t.accent}"></div>
+        <div class="t-name">${t.label}</div>
+        <div class="t-range">${t.range}</div>
+        <div class="t-mult" style="color:${t.accent}">${t.mult}×</div>
+        <div class="t-amt">${fmt(base * t.mult)}</div>
+      </div>`;
+    }).join("");
+
+    const badge = document.getElementById("tierBadge");
+    const result = document.getElementById("result");
+
+    if (!isNaN(d) && d >= 0) {
+      const tier = getTier(d);
+      badge.innerHTML = `
+        <div class="dot" style="background:${tier.accent}"></div>
+        <span class="tier-name" style="color:${tier.accent}">${tier.label}</span>
+        <span class="tier-mult">· ${tier.mult}× multiplier</span>`;
+
+      if (base > 0) {
+        const total = Math.round(base * tier.mult);
+        const spAmt = Math.round(total * sp / 100);
+        const vtAmt = total - spAmt;
+        result.style.background = tier.bg;
+        result.style.border = `1px solid ${tier.border}`;
+        document.getElementById("totalAmt").textContent = fmt(total);
+        document.getElementById("totalAmt").style.color = tier.accent;
+        document.getElementById("spAmt").textContent = fmt(spAmt);
+        document.getElementById("vtAmt").textContent = fmt(vtAmt);
+        document.getElementById("spPct").textContent = sp + "%";
+        document.getElementById("vtPct").textContent = vt + "%";
+        result.classList.add("show");
+      }
+    } else {
+      badge.innerHTML = "";
+      result.classList.remove("show");
+    }
+  }
+
+  update();
+</script>
+</body>
+</html>
     .header { text-align: center; padding: 16px 0 22px; }
     .header .eyebrow { font-family: 'DM Sans', sans-serif; font-size: 10px; letter-spacing: 0.2em; color: #333; text-transform: uppercase; margin-bottom: 6px; }
     .header h1 { font-family: 'DM Sans', sans-serif; font-size: 22px; font-weight: 700; color: #eee; letter-spacing: -0.02em; }
