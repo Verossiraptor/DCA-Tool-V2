@@ -312,10 +312,11 @@ status.className = ‘fetch-status’;
 status.textContent = ‘Fetching…’;
 
 try {
+const PROXY = ‘https://dca-proxy.alex-g-veross.workers.dev’;
 const [spRes, vixRes, vixHRes] = await Promise.all([
-fetch(‘https://query1.finance.yahoo.com/v8/finance/chart/%5EGSPC?range=5y&interval=1mo’),
-fetch(‘https://query1.finance.yahoo.com/v8/finance/chart/%5EVIX?range=1d&interval=1d’),
-fetch(‘https://query1.finance.yahoo.com/v8/finance/chart/%5EVIX?range=1y&interval=1wk’),
+fetch(`${PROXY}/sp500`),
+fetch(`${PROXY}/vix`),
+fetch(`${PROXY}/vixhistory`),
 ]);
 
 ```
