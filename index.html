@@ -500,7 +500,9 @@ function update() {
   if (dd !== null && !isNaN(dd) && vix !== null && !isNaN(vix)) {
     const dr = rateDD(dd);
     const vr = rateVIX(vix);
-    const cr = (cape !== null && !isNaN(cape)) ? rateCAPE(cape, capep) : { combined: 1.0, levelLabel: null, trendLabel: null };
+    const liveCape = cape !== null && !isNaN(cape) ? cape : live.cape;
+    const liveCapep = capep !== null && !isNaN(capep) ? capep : live.capeP;
+    const cr = (liveCape !== null && !isNaN(liveCape)) ? rateCAPE(liveCape, liveCapep) : { combined: 1.0, levelLabel: null, trendLabel: null };
 
     const raw   = dr.mult * vr.factor * cr.combined;
     const mult  = Math.max(0.5, Math.min(5.0, raw));
