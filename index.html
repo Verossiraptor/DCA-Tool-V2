@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="DCA Tool" />
+<meta name="theme-color" content="#080808" />
+<title>DCA Tool</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;600;700&display=swap');
+
+- { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+body {
+background: #080808;
+color: #d4d4d4;
+font-family: ‘DM Mono’, ‘Fira Code’, monospace;
+min-height: 100vh;
+padding: env(safe-area-inset-top, 20px) 16px env(safe-area-inset-bottom, 34px);
+padding-top: max(env(safe-area-inset-top), 24px);
+}
+
+.wrap { max-width: 440px; margin: 0 auto; padding-bottom: 40px; }
+
+/* Header */
+.header { text-align: center; padding: 16px 0 20px; }
+.header .eyebrow { font-family: ‘DM Sans’, sans-serif; font-size: 10px; letter-spacing: 0.2em; color: #2a2a2a; text-transform: uppercase; margin-bottom: 6px; }
+.header h1 { font-family: ‘DM Sans’, sans-serif; font-size: 22px; font-weight: 700; color: #eee; letter-spacing: -0.02em; }
+
+/* Fetch bar */
+.fetch-bar { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.fetch-status { font-family: ‘DM Sans’, sans-serif; font-size: 10px; color: #333; flex: 1; letter-spacing: 0.05em; }
+.fetch-status.live { color: #4a7a4a; }
+.fetch-status.err  { color: #7a3a3a; }
+.fetch-btn {
+font-family: ‘DM Sans’, sans-serif; font-size: 10px; font-weight: 600;
+background: #0e0e0e; border: 1px solid #222; color: #555;
+padding: 6px 14px; border-radius: 8px; cursor: pointer; letter-spacing: 0.08em;
+transition: border-color 0.15s, color 0.15s;
+}
+.fetch-btn:hover { border-color: #333; color: #888; }
+.fetch-btn:active { background: #151515; }
+
+/* Signal grid */
+.signals { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+
+.signal-card {
+background: #0e0e0e;
+border: 1px solid #1a1a1a;
+border-radius: 14px;
+padding: 14px 12px 10px;
+display: flex; flex-direction: column; gap: 4px;
+transition: border-color 0.3s;
+}
+.signal-lbl { font-family: ‘DM Sans’, sans-serif; font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase; color: #333; }
+.signal-val { font-size: 22px; font-weight: 500; line-height: 1.1; margin: 2px 0; }
+.signal-pill {
+font-family: ‘DM Sans’, sans-serif; font-size: 9px; font-weight: 700;
+padding: 2px 7px; border-radius: 5px; display: inline-block;
+letter-spacing: 0.05em; text-transform: uppercase;
+}
+.signal-sub { font-size: 9px; color: #333; margin-top: 3px; line-height: 1.3; }
+.sparkline { width: 100%; height: 24px; margin-top: 6px; overflow: visible; }
+
+/* Signal color themes */
+.theme-green { border-color: #1a3a1a !important; }
+.theme-green .signal-val { color: #86efac; }
+.theme-green .signal-pill { background: #0d1f0d; color: #86efac; }
+
+.theme-yellow { border-color: #3a3000 !important; }
+.theme-yellow .signal-val { color: #fde047; }
+.theme-yellow .signal-pill { background: #1a1600; color: #fde047; }
+
+.theme-orange { border-color: #3a1e00 !important; }
+.theme-orange .signal-val { color: #fb923c; }
+.theme-orange .signal-pill { background: #1f0e00; color: #fb923c; }
+
+.theme-red { border-color: #3a1414 !important; }
+.theme-red .signal-val { color: #f87171; }
+.theme-red .signal-pill { background: #1f0a0a; color: #f87171; }
+
+.theme-dim { border-color: #1a1a1a; }
+.theme-dim .signal-val { color: #444; }
+.theme-dim .signal-pill { background: #141414; color: #444; }
+
+/* Manual input card */
+.card { background: #0e0e0e; border: 1px solid #1a1a1a; border-radius: 16px; padding: 18px; margin-bottom: 12px; }
+.card-lbl { font-family: ‘DM Sans’, sans-serif; font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: #333; margin-bottom: 14px; }
+.input-row { display: flex; gap: 8px; margin-bottom: 10px; }
+.input-row:last-child { margin-bottom: 0; }
+.input-group { flex: 1; }
+.input-group label { font-family: ‘DM Sans’, sans-serif; font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: #383838; display: block; margin-bottom: 5px; }
+.num-input {
+font-family: ‘DM Mono’, monospace; font-size: 16px;
+background: #080808; border: 1px solid #1e1e1e; color: #c4c4c4;
+padding: 9px 11px; border-radius: 10px; width: 100%;
+outline: none; -webkit-appearance: none; transition: border-color 0.15s;
+}
+.num-input:focus { border-color: #2e2e2e; }
+.num-input::placeholder { color: #252525; }
+
+/* Recommendation card */
+.rec-card {
+background: #0e0e0e; border: 1px solid #1a1a1a;
+border-radius: 16px; padding: 20px; margin-bottom: 12px;
+transition: background 0.3s, border-color 0.3s;
+}
+.rec-eyebrow { font-family: ‘DM Sans’, sans-serif; font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: #333; margin-bottom: 8px; }
+.rec-row { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 14px; }
+.rec-mult { font-size: 52px; font-weight: 500; line-height: 1; color: #444; transition: color 0.3s; }
+.rec-total { text-align: right; }
+.rec-total-lbl { font-family: ‘DM Sans’, sans-serif; font-size: 10px; color: #333; margin-bottom: 3px; }
+.rec-total-amt { font-size: 26px; font-weight: 500; color: #444; transition: color 0.3s; }
+
+.factors { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+.factor-chip {
+font-family: ‘DM Sans’, sans-serif; font-size: 9px; font-weight: 600;
+padding: 3px 9px; border-radius: 6px; border: 1px solid #1e1e1e; color: #444;
+letter-spacing: 0.05em;
+}
+.rec-explain { font-family: ‘DM Sans’, sans-serif; font-size: 12px; color: #555; line-height: 1.65; }
+
+/* Allocation split */
+.split-row { display: flex; gap: 8px; margin-top: 14px; }
+.split-box { flex: 1; background: rgba(0,0,0,0.4); border-radius: 10px; padding: 12px; border: 1px solid #141414; }
+.split-ticker { font-family: ‘DM Sans’, sans-serif; font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase; margin-bottom: 4px; }
+.split-amt { font-size: 20px; font-weight: 500; }
+.split-pct { font-size: 9px; margin-top: 2px; opacity: 0.4; }
+
+/* Settings */
+.setting { margin-bottom: 16px; }
+.setting:last-child { margin-bottom: 0; }
+.setting-lbl { font-size: 11px; color: #444; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+.money-wrap { display: flex; align-items: center; gap: 8px; }
+.money-sign { color: #333; font-size: 16px; }
+input[type=range] {
+-webkit-appearance: none; appearance: none;
+height: 4px; background: #1e1e1e; border-radius: 2px; outline: none; width: 100%;
+}
+input[type=range]::-webkit-slider-thumb {
+-webkit-appearance: none; width: 22px; height: 22px;
+border-radius: 50%; background: #86efac; cursor: pointer;
+}
+
+/* Tier table */
+.tier-row { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 1px solid #111; transition: opacity 0.25s; }
+.tier-row:last-child { border-bottom: none; }
+.dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+.t-name { flex: 1; font-family: ‘DM Sans’, sans-serif; font-size: 12px; color: #666; }
+.t-range { font-size: 10px; color: #333; width: 52px; text-align: right; }
+.t-base { font-size: 11px; width: 32px; text-align: right; }
+.t-amt { font-size: 11px; color: #444; width: 70px; text-align: right; }
+
+/* Footer */
+.footer { font-size: 10px; color: #1e1e1e; text-align: center; margin-top: 20px; font-family: ‘DM Sans’, sans-serif; line-height: 2; }
+.footer a { color: #2a2a2a; text-decoration: none; }
+
+@keyframes fadeUp { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+.anim { animation: fadeUp 0.25s ease; }
+</style>
+
+</head>
+<body>
+<div class="wrap">
+
+  <div class="header">
+    <div class="eyebrow">Three-Signal Tiered DCA</div>
+    <h1>S&P 500 Contribution Tool</h1>
+  </div>
+
+  <!-- Fetch status -->
+
+  <div class="fetch-bar">
+    <span class="fetch-status" id="fetchStatus">Connecting to market data…</span>
+    <button class="fetch-btn" onclick="fetchData()">↻ Refresh</button>
+  </div>
+
+  <!-- Signal cards -->
+
+  <div class="signals">
+    <div class="signal-card theme-dim" id="cardDD">
+      <div class="signal-lbl">Drawdown</div>
+      <div class="signal-val" id="valDD">—</div>
+      <div class="signal-pill" id="pillDD">—</div>
+      <div class="signal-sub" id="subDD"></div>
+      <svg class="sparkline" id="sparkDD" viewBox="0 0 80 24" preserveAspectRatio="none"></svg>
+    </div>
+    <div class="signal-card theme-dim" id="cardVIX">
+      <div class="signal-lbl">VIX</div>
+      <div class="signal-val" id="valVIX">—</div>
+      <div class="signal-pill" id="pillVIX">—</div>
+      <div class="signal-sub" id="subVIX"></div>
+      <svg class="sparkline" id="sparkVIX" viewBox="0 0 80 24" preserveAspectRatio="none"></svg>
+    </div>
+    <div class="signal-card theme-dim" id="cardCAPE">
+      <div class="signal-lbl">CAPE</div>
+      <div class="signal-val" id="valCAPE">—</div>
+      <div class="signal-pill" id="pillCAPE">—</div>
+      <div class="signal-sub" id="subCAPE"></div>
+    </div>
+  </div>
+
+  <!-- Manual inputs -->
+
+  <div class="card">
+    <div class="card-lbl">Manual override</div>
+    <div class="input-row">
+      <div class="input-group">
+        <label>Drawdown %</label>
+        <input class="num-input" id="inDD" type="number" inputmode="decimal" min="0" max="100" step="0.1" placeholder="auto" oninput="update()" />
+      </div>
+      <div class="input-group">
+        <label>VIX</label>
+        <input class="num-input" id="inVIX" type="number" inputmode="decimal" min="0" step="0.1" placeholder="auto" oninput="update()" />
+      </div>
+    </div>
+    <div class="input-row">
+      <div class="input-group">
+        <label>CAPE (now)</label>
+        <input class="num-input" id="inCAPE" type="number" inputmode="decimal" min="0" step="0.1" placeholder="e.g. 38" oninput="update()" />
+      </div>
+      <div class="input-group">
+        <label>CAPE (6mo ago)</label>
+        <input class="num-input" id="inCAPEp" type="number" inputmode="decimal" min="0" step="0.1" placeholder="e.g. 34" oninput="update()" />
+      </div>
+    </div>
+  </div>
+
+  <!-- Recommendation -->
+
+  <div class="rec-card" id="recCard">
+    <div class="rec-eyebrow">Recommended multiplier</div>
+    <div class="rec-row">
+      <div class="rec-mult" id="recMult">—</div>
+      <div class="rec-total" id="recTotalWrap" style="display:none">
+        <div class="rec-total-lbl">This month</div>
+        <div class="rec-total-amt" id="recTotal">—</div>
+      </div>
+    </div>
+    <div class="factors" id="factors"></div>
+    <div class="rec-explain" id="recExplain">Enter drawdown and VIX to see your recommendation.</div>
+    <div class="split-row" id="splitRow" style="display:none">
+      <div class="split-box" style="border-color:#1a3a1a">
+        <div class="split-ticker" style="color:#4a7a4a">SCHX</div>
+        <div class="split-amt" style="color:#86efac" id="schxAmt">—</div>
+        <div class="split-pct" id="schxPct"></div>
+      </div>
+      <div class="split-box" style="border-color:#1a2e4a">
+        <div class="split-ticker" style="color:#2a4a7a">VT</div>
+        <div class="split-amt" style="color:#60a5fa" id="vtAmt">—</div>
+        <div class="split-pct" id="vtPct"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Settings -->
+
+  <div class="card">
+    <div class="card-lbl">Settings</div>
+    <div class="setting">
+      <div class="setting-lbl">Base monthly contribution</div>
+      <div class="money-wrap">
+        <span class="money-sign">$</span>
+        <input type="number" class="num-input" id="base" value="500" min="0" step="50" oninput="update()" />
+      </div>
+    </div>
+    <div class="setting">
+      <div class="setting-lbl">Allocation <span id="splitLbl" style="font-family:'DM Mono',monospace;font-size:11px;"></span></div>
+      <input type="range" id="split" min="50" max="100" step="5" value="70" oninput="update()" />
+    </div>
+  </div>
+
+  <!-- Tier table reference -->
+
+  <div class="card">
+    <div class="card-lbl" id="tierLbl">Drawdown tiers (base multipliers)</div>
+    <div id="tierTable"></div>
+  </div>
+
+  <div class="footer">
+    Not financial advice<br>
+    <a href="https://slickcharts.com/sp500/drawdowns" target="_blank">slickcharts.com/sp500/drawdowns</a> ·
+    <a href="https://multpl.com/shiller-pe" target="_blank">multpl.com/shiller-pe</a>
+  </div>
+
+</div>
+<script>
+// ─────────────────────────────────────────────────────────
+// TIERS  (drawdown → base multiplier)
+// ─────────────────────────────────────────────────────────
+const TIERS = [
+  { label: "Near ATH",    range: "< 5%",   min: 0,  max: 5,        mult: 1.0,  accent: "#86efac", bg: "#090f09", border: "#183018" },
+  { label: "Mild Dip",    range: "5–10%",  min: 5,  max: 10,       mult: 1.75, accent: "#fde047", bg: "#0f0e00", border: "#302800" },
+  { label: "Correction",  range: "10–20%", min: 10, max: 20,       mult: 2.5,  accent: "#fb923c", bg: "#110800", border: "#301800" },
+  { label: "Bear Market", range: "20%+",   min: 20, max: Infinity, mult: 3.5,  accent: "#f87171", bg: "#110505", border: "#301010" },
+];
+
+// ─────────────────────────────────────────────────────────
+// LIVE DATA CACHE
+// ─────────────────────────────────────────────────────────
+let live = { dd: null, vix: null, vixSpark: [], ddSpark: [], ok: false };
+
+// ─────────────────────────────────────────────────────────
+// FETCH  (Yahoo Finance unofficial API)
+// ─────────────────────────────────────────────────────────
+async function fetchData() {
+const status = document.getElementById(‘fetchStatus’);
+status.className = ‘fetch-status’;
+status.textContent = ‘Fetching…’;
+
+try {
+const PROXY = ‘https://dca-proxy.alex-g-veross.workers.dev’;
+const [spRes, vixRes, vixHRes] = await Promise.all([
+fetch(`${PROXY}/sp500`),
+fetch(`${PROXY}/vix`),
+fetch(`${PROXY}/vixhistory`),
+]);
+
+```
+const [spJ, vixJ, vixHJ] = await Promise.all([spRes.json(), vixRes.json(), vixHRes.json()]);
+
+// S&P → ATH + current → drawdown
+const spClose = spJ.chart.result[0].indicators.quote[0].close.filter(v => v != null);
+const spCurrent = spClose[spClose.length - 1];
+const spATH = Math.max(...spClose);
+const dd = ((spATH - spCurrent) / spATH) * 100;
+
+// Recent monthly S&P for sparkline (normalised drawdown over time)
+const spSpark = spClose.slice(-52).map(v => ((spATH - v) / spATH) * 100);
+
+// VIX current
+const vixClose = vixJ.chart.result[0].indicators.quote[0].close.filter(v => v != null);
+const vix = vixClose[vixClose.length - 1];
+
+// VIX history sparkline
+const vixH = vixHJ.chart.result[0].indicators.quote[0].close.filter(v => v != null);
+
+live = { dd, vix, vixSpark: vixH, ddSpark: spSpark, ok: true };
+
+// Update placeholders
+document.getElementById('inDD').placeholder  = dd.toFixed(1);
+document.getElementById('inVIX').placeholder = vix.toFixed(1);
+
+// Sparklines
+renderSparkline('sparkVIX', vixH, '#60a5fa');
+renderSparkline('sparkDD',  spSpark, '#fb923c');
+
+const t = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+status.className = 'fetch-status live';
+status.textContent = `Live data · updated ${t}`;
+
+update();
+```
+
+} catch (e) {
+status.className = ‘fetch-status err’;
+status.textContent = ‘Auto-fetch blocked — enter manually or add a proxy’;
+live.ok = false;
+update();
+}
+}
+
+// ─────────────────────────────────────────────────────────
+// SPARKLINE  (SVG polyline)
+// ─────────────────────────────────────────────────────────
+function renderSparkline(id, values, color) {
+const svg = document.getElementById(id);
+if (!svg || values.length < 2) return;
+const W = 80, H = 24, P = 2;
+const mn = Math.min(…values), mx = Math.max(…values), rng = mx - mn || 1;
+const pts = values.map((v, i) => {
+const x = P + (i / (values.length - 1)) * (W - P * 2);
+const y = H - P - ((v - mn) / rng) * (H - P * 2);
+return `${x.toFixed(1)},${y.toFixed(1)}`;
+});
+const last = pts[pts.length - 1].split(’,’);
+svg.innerHTML = ` <polyline points="${pts.join(' ')}" fill="none" stroke="${color}" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round" opacity="0.5"/> <circle cx="${last[0]}" cy="${last[1]}" r="2" fill="${color}" opacity="0.9"/>`;
+}
+
+// ─────────────────────────────────────────────────────────
+// SIGNAL RATING FUNCTIONS
+// ─────────────────────────────────────────────────────────
+function rateDD(d) {
+if (d <  5) return { label: “Near ATH”,    theme: “theme-green”,  mult: 1.0,  desc: “Market at highs” };
+if (d < 10) return { label: “Mild Dip”,    theme: “theme-yellow”, mult: 1.75, desc: `${d.toFixed(1)}% off ATH` };
+if (d < 20) return { label: “Correction”,  theme: “theme-orange”, mult: 2.5,  desc: `${d.toFixed(1)}% off ATH` };
+return             { label: “Bear Market”, theme: “theme-red”,    mult: 3.5,  desc: `${d.toFixed(1)}% off ATH` };
+}
+
+function rateVIX(v) {
+if (v < 15) return { label: “Complacent”, theme: “theme-green”,  factor: 0.85, desc: “Low fear” };
+if (v < 20) return { label: “Normal”,     theme: “theme-green”,  factor: 1.0,  desc: “Calm market” };
+if (v < 30) return { label: “Elevated”,   theme: “theme-yellow”, factor: 1.1,  desc: “Anxiety rising” };
+if (v < 40) return { label: “High Fear”,  theme: “theme-orange”, factor: 1.25, desc: “Fear in market” };
+return             { label: “Panic”,      theme: “theme-red”,    factor: 1.4,  desc: “Panic selling” };
+}
+
+function rateCAPE(c, cp) {
+// Level
+let lf, ll, lt;
+if (c < 20)      { lf = 1.20; ll = “Cheap”;     lt = “theme-green”;  }
+else if (c < 25) { lf = 1.10; ll = “Fair”;       lt = “theme-green”;  }
+else if (c < 30) { lf = 1.00; ll = “Pricey”;     lt = “theme-yellow”; }
+else if (c < 35) { lf = 0.95; ll = “Expensive”;  lt = “theme-orange”; }
+else             { lf = 0.90; ll = “Very Exp.”;  lt = “theme-red”;    }
+
+// Trend (6-month delta)
+let tf = 1.0, tl = “”, td = “→”;
+if (cp !== null && !isNaN(cp)) {
+const delta = c - cp;
+if      (delta < -4) { tf = 1.15; tl = “Compressing fast”; td = “↓↓”; }
+else if (delta < -1) { tf = 1.08; tl = “Compressing”;      td = “↓”;  }
+else if (delta <=  1){ tf = 1.00; tl = “Flat”;             td = “→”;  }
+else if (delta <=  4){ tf = 0.92; tl = “Expanding”;        td = “↑”;  }
+else                 { tf = 0.85; tl = “Expanding fast”;   td = “↑↑”; }
+}
+
+return { levelFactor: lf, levelLabel: ll, levelTheme: lt, trendFactor: tf, trendLabel: tl, trendDir: td, combined: lf * tf };
+}
+
+// ─────────────────────────────────────────────────────────
+// EXPLANATION TEXT
+// ─────────────────────────────────────────────────────────
+function explain(dd, dr, vix, vr, cape, cr, mult) {
+const parts = [];
+
+// Drawdown
+if (dd < 5) parts.push(“market near all-time highs”);
+else if (dd < 10) parts.push(`mild ${dd.toFixed(1)}% dip`);
+else if (dd < 20) parts.push(`${dd.toFixed(1)}% correction underway`);
+else parts.push(`deep ${dd.toFixed(1)}% bear market`);
+
+// VIX
+if (vix < 20) parts.push(“low market fear”);
+else if (vix < 30) parts.push(“elevated anxiety (VIX “ + vix.toFixed(0) + “)”);
+else if (vix < 40) parts.push(“high fear (VIX “ + vix.toFixed(0) + “)”);
+else parts.push(“panic-level fear (VIX “ + vix.toFixed(0) + “)”);
+
+// CAPE
+if (cape) {
+const trend = cr.trendLabel ? `, ${cr.trendLabel.toLowerCase()}` : ‘’;
+parts.push(`CAPE ${cape.toFixed(0)} — ${cr.levelLabel.toLowerCase()}${trend}`);
+}
+
+const action =
+mult >= 3.5 ? “Maximum buying — deploy aggressively.” :
+mult >= 2.5 ? “Strong signal — buy significantly above baseline.” :
+mult >= 1.5 ? “Elevated buying — add meaningfully above baseline.” :
+mult >= 1.0 ? “Baseline contribution — market not on sale.” :
+“Market expensive with low fear — stick to minimum.”;
+
+return `${parts.join(' · ')}.\n\n${action}`;
+}
+
+// ─────────────────────────────────────────────────────────
+// HELPERS
+// ─────────────────────────────────────────────────────────
+function fmt(n) { return “$” + Math.round(n).toLocaleString(“en-US”); }
+function setTheme(el, theme) {
+el.className = el.className.replace(/theme-\w+/g, ‘’).trim() + ’ ’ + theme;
+}
+
+// ─────────────────────────────────────────────────────────
+// MAIN UPDATE
+// ─────────────────────────────────────────────────────────
+function update() {
+const base  = parseFloat(document.getElementById(“base”).value) || 0;
+const spPct = parseInt(document.getElementById(“split”).value);
+const vtPct = 100 - spPct;
+
+// Resolve values: manual > live
+const rawDD   = document.getElementById(“inDD”).value;
+const rawVIX  = document.getElementById(“inVIX”).value;
+const rawCAPE = document.getElementById(“inCAPE”).value;
+const rawCAPEp= document.getElementById(“inCAPEp”).value;
+
+const dd    = rawDD   !== ‘’ ? parseFloat(rawDD)   : live.dd;
+const vix   = rawVIX  !== ‘’ ? parseFloat(rawVIX)  : live.vix;
+const cape  = rawCAPE !== ‘’ ? parseFloat(rawCAPE) : null;
+const capep = rawCAPEp!== ‘’ ? parseFloat(rawCAPEp): null;
+
+// Split label
+document.getElementById(“splitLbl”).innerHTML =
+`<span style="color:#86efac">${spPct}% SCHX</span> · <span style="color:#60a5fa">${vtPct}% VT</span>`;
+
+// Tier table
+const activeTier = (dd !== null && !isNaN(dd)) ? TIERS.find(t => dd >= t.min && dd < t.max) : null;
+document.getElementById(“tierLbl”).textContent = `Drawdown tiers · base ${fmt(base)}`;
+document.getElementById(“tierTable”).innerHTML = TIERS.map(t => {
+const active = t === activeTier;
+return `<div class="tier-row" style="opacity:${active ? 1 : 0.25}"> <div class="dot" style="background:${t.accent}"></div> <div class="t-name">${t.label}</div> <div class="t-range">${t.range}</div> <div class="t-base" style="color:${t.accent}">${t.mult}×</div> <div class="t-amt">${fmt(base * t.mult)}</div> </div>`;
+}).join(’’);
+
+// ── Drawdown signal card ──
+if (dd !== null && !isNaN(dd)) {
+const dr = rateDD(dd);
+const card = document.getElementById(‘cardDD’);
+setTheme(card, dr.theme);
+document.getElementById(‘valDD’).textContent  = dd.toFixed(1) + ‘%’;
+document.getElementById(‘pillDD’).textContent = dr.label;
+document.getElementById(‘subDD’).textContent  = dr.desc;
+}
+
+// ── VIX signal card ──
+if (vix !== null && !isNaN(vix)) {
+const vr = rateVIX(vix);
+const card = document.getElementById(‘cardVIX’);
+setTheme(card, vr.theme);
+document.getElementById(‘valVIX’).textContent  = vix.toFixed(1);
+document.getElementById(‘pillVIX’).textContent = vr.label;
+document.getElementById(‘subVIX’).textContent  = vr.desc;
+}
+
+// ── CAPE signal card ──
+if (cape !== null && !isNaN(cape)) {
+const cr = rateCAPE(cape, capep);
+const card = document.getElementById(‘cardCAPE’);
+setTheme(card, cr.levelTheme);
+document.getElementById(‘valCAPE’).textContent  = cape.toFixed(0);
+document.getElementById(‘pillCAPE’).textContent = cr.levelLabel;
+document.getElementById(‘subCAPE’).textContent  = cr.trendDir + ’ ’ + (cr.trendLabel || ‘no trend data’);
+}
+
+// ── Recommendation ──
+if (dd !== null && !isNaN(dd) && vix !== null && !isNaN(vix)) {
+const dr = rateDD(dd);
+const vr = rateVIX(vix);
+const cr = (cape !== null && !isNaN(cape)) ? rateCAPE(cape, capep) : { combined: 1.0, levelLabel: null, trendLabel: null };
+
+```
+const raw   = dr.mult * vr.factor * cr.combined;
+const mult  = Math.max(0.5, Math.min(5.0, raw));
+const tier  = TIERS.find(t => dd >= t.min && dd < t.max);
+
+const recCard = document.getElementById('recCard');
+recCard.style.background   = tier.bg;
+recCard.style.borderColor  = tier.border;
+
+const multEl = document.getElementById('recMult');
+multEl.textContent  = mult.toFixed(2) + '×';
+multEl.style.color  = tier.accent;
+
+// Factor chips
+const capeChip = (cape !== null && !isNaN(cape)) ?
+  `<div class="factor-chip">CAPE ×${cr.combined.toFixed(2)}</div>` : '';
+document.getElementById('factors').innerHTML =
+  `<div class="factor-chip">Drawdown ${dr.mult}×</div>
+   <div class="factor-chip">VIX ×${vr.factor.toFixed(2)}</div>
+   ${capeChip}
+   <div class="factor-chip" style="color:${tier.accent};border-color:${tier.border}">= ${mult.toFixed(2)}×</div>`;
+
+document.getElementById('recExplain').textContent =
+  explain(dd, dr, vix, vr, cape, cr, mult);
+
+// Dollar amounts
+if (base > 0) {
+  const total   = Math.round(base * mult);
+  const schxAmt = Math.round(total * spPct / 100);
+  const vtAmt   = total - schxAmt;
+
+  document.getElementById('recTotalWrap').style.display = 'block';
+  document.getElementById('recTotal').textContent  = fmt(total);
+  document.getElementById('recTotal').style.color  = tier.accent;
+
+  document.getElementById('schxAmt').textContent = fmt(schxAmt);
+  document.getElementById('vtAmt').textContent   = fmt(vtAmt);
+  document.getElementById('schxPct').textContent = spPct + '%';
+  document.getElementById('vtPct').textContent   = vtPct + '%';
+  document.getElementById('splitRow').style.display = 'flex';
+}
+```
+
+}
+}
+
+// ─────────────────────────────────────────────────────────
+// INIT
+// ─────────────────────────────────────────────────────────
+update();
+fetchData();
+</script>
+
+</body>
+</html>
