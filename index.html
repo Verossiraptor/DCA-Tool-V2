@@ -482,13 +482,20 @@ function update() {
   }
 
   if (cape !== null && !isNaN(cape)) {
-    const cr = rateCAPE(cape, capep);
-    const card = document.getElementById('cardCAPE');
-    setTheme(card, cr.levelTheme);
-    document.getElementById('valCAPE').textContent  = cape.toFixed(0);
-    document.getElementById('pillCAPE').textContent = cr.levelLabel;
-    document.getElementById('subCAPE').textContent  = cr.trendDir + ' ' + (cr.trendLabel || 'no trend data');
-  }
+  const cr = rateCAPE(cape, capep);
+  const card = document.getElementById('cardCAPE');
+  setTheme(card, cr.levelTheme);
+  document.getElementById('valCAPE').textContent  = cape.toFixed(0);
+  document.getElementById('pillCAPE').textContent = cr.levelLabel;
+  document.getElementById('subCAPE').textContent  = cr.trendDir + ' ' + (cr.trendLabel || 'no trend data');
+} else if (live.cape !== null && !isNaN(live.cape)) {
+  const cr = rateCAPE(live.cape, live.capeP);
+  const card = document.getElementById('cardCAPE');
+  setTheme(card, cr.levelTheme);
+  document.getElementById('valCAPE').textContent  = live.cape.toFixed(0);
+  document.getElementById('pillCAPE').textContent = cr.levelLabel;
+  document.getElementById('subCAPE').textContent  = cr.trendDir + ' ' + (cr.trendLabel || 'no trend data');
+}
 
   if (dd !== null && !isNaN(dd) && vix !== null && !isNaN(vix)) {
     const dr = rateDD(dd);
