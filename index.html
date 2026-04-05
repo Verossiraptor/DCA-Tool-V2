@@ -284,8 +284,8 @@ const TIERS = [
   { label: "Bear Market", range: "20%+",   min: 20, max: Infinity, mult: 3.5,  accent: "#f87171", bg: "#110505", border: "#301010" },
 ];
 
-let live = { dd: null, vix: null, vixSpark: [], ddSpark: [], ok: false };
-
+let live = { dd: null, vix: null, cape: null, capeP: null, vixSpark: [], ddSpark: [], ok: false };
+  
 async function fetchData() {
   const status = document.getElementById('fetchStatus');
   status.className = 'fetch-status';
@@ -294,16 +294,18 @@ async function fetchData() {
   try {
     const PROXY = 'https://dca-proxy.alex-g-veross.workers.dev';
     
-    const [spRes, vixRes, vixHRes] = await Promise.all([
+    const [spRes, vixRes, vixHRes, capeRes] = await Promise.all([
       fetch(`${PROXY}/sp500`),
       fetch(`${PROXY}/vix`),
-      fetch(`${PROXY}/vixhistory`)
+      fetch(`${PROXY}/vixhistory`),
+      fetch(`${PROXY}/cape`)
     ]);
 
-    const [spJ, vixJ, vixHJ] = await Promise.all([
+    const [spJ, vixJ, vixHJ, capeJ] = await Promise.all([
       spRes.json(),
       vixRes.json(),
-      vixHRes.json()
+      vixHRes.json(),
+      capeRes.json()
     ]);
 
     // S&P 500: Calculate ATH and drawdown
@@ -312,20 +314,27 @@ async function fetchData() {
     const spATH = Math.max(...spClose);
     const dd = ((spATH - spCurrent) / spATH) * 100;
 
-    // VIX current (from 1d endpoint)
+    // VIX current
     const vixCurrent = vixJ.chart.result[0].indicators.quote[0].close[0];
 
     // VIX history for sparkline
     const vixH = vixHJ.chart.result[0].indicators.quote[0].close.filter(v => v != null);
 
-    // S&P sparkline (last 52 weeks, normalized by ATH)
+    // S&P sparkline
     const spSpark = spClose.slice(-52).map(v => ((spATH - v) / spATH) * 100);
 
-    live = { dd, vix: vixCurrent, vixSpark: vixH, ddSpark: spSpark, ok: true };
+    // CAPE: Get current and 6 months ago
+    const capeData = capeJ.data || [];
+    const capeCurrent = capeData.length > 0 ? capeData[0][1] : null;
+    const capePrevious = capeData.length > 6 ? capeData[6][1] : null;
+
+    live = { dd, vix: vixCurrent, cape: capeCurrent, capeP: capePrevious, vixSpark: vixH, ddSpark: spSpark, ok: true };
 
     // Update placeholders
     document.getElementById('inDD').placeholder  = dd.toFixed(1);
     document.getElementById('inVIX').placeholder = vixCurrent.toFixed(1);
+    if (capeCurrent) document.getElementById('inCAPE').placeholder = capeCurrent.toFixed(0);
+    if (capePrevious) document.getElementById('inCAPEp').placeholder = capePrevious.toFixed(0);
 
     // Render sparklines
     renderSparkline('sparkVIX', vixH, '#60a5fa');
