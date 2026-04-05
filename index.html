@@ -292,38 +292,43 @@ async function fetchData() {
   status.textContent = 'Fetching…';
 
   try {
-    const API_KEY = '6933ff5411mshb77a0fa1bdd6116p1ca25ajsn891e07679af0';
-    const options = {
-      method: 'GET',
-      headers: {
-        'x-rapidapi-key': API_KEY,
-        'x-rapidapi-host': 'yahoo-finance1.p.rapidapi.com'
-      }
-    };
-
-    const [spRes, vixRes] = await Promise.all([
-      fetch('https://yahoo-finance1.p.rapidapi.com/stock/v2/get-chart?symbol=%5EGSPC&interval=1d&range=1y', options),
-      fetch('https://yahoo-finance1.p.rapidapi.com/stock/v2/get-chart?symbol=%5EVIX&interval=1d&range=1y', options)
+    const PROXY = 'https://dca-proxy.alex-g-veross.workers.dev';
+    
+    const [spRes, vixRes, vixHRes] = await Promise.all([
+      fetch(`${PROXY}/sp500`),
+      fetch(`${PROXY}/vix`),
+      fetch(`${PROXY}/vixhistory`)
     ]);
 
-    const [spJ, vixJ] = await Promise.all([spRes.json(), vixRes.json()]);
+    const [spJ, vixJ, vixHJ] = await Promise.all([
+      spRes.json(),
+      vixRes.json(),
+      vixHRes.json()
+    ]);
 
+    // S&P 500: Calculate ATH and drawdown
     const spClose = spJ.chart.result[0].indicators.quote[0].close.filter(v => v != null);
     const spCurrent = spClose[spClose.length - 1];
     const spATH = Math.max(...spClose);
     const dd = ((spATH - spCurrent) / spATH) * 100;
 
+    // VIX current (from 1d endpoint)
+    const vixCurrent = vixJ.chart.result[0].indicators.quote[0].close[0];
+
+    // VIX history for sparkline
+    const vixH = vixHJ.chart.result[0].indicators.quote[0].close.filter(v => v != null);
+
+    // S&P sparkline (last 52 weeks, normalized by ATH)
     const spSpark = spClose.slice(-52).map(v => ((spATH - v) / spATH) * 100);
 
-    const vixClose = vixJ.chart.result[0].indicators.quote[0].close.filter(v => v != null);
-    const vix = vixClose[vixClose.length - 1];
+    live = { dd, vix: vixCurrent, vixSpark: vixH, ddSpark: spSpark, ok: true };
 
-    live = { dd, vix, vixSpark: vixClose, ddSpark: spSpark, ok: true };
-
+    // Update placeholders
     document.getElementById('inDD').placeholder  = dd.toFixed(1);
-    document.getElementById('inVIX').placeholder = vix.toFixed(1);
+    document.getElementById('inVIX').placeholder = vixCurrent.toFixed(1);
 
-    renderSparkline('sparkVIX', vixClose, '#60a5fa');
+    // Render sparklines
+    renderSparkline('sparkVIX', vixH, '#60a5fa');
     renderSparkline('sparkDD',  spSpark, '#fb923c');
 
     const t = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -333,6 +338,7 @@ async function fetchData() {
     update();
 
   } catch (e) {
+    console.error('Fetch error:', e);
     status.className = 'fetch-status err';
     status.textContent = 'Auto-fetch blocked — enter manually or add a proxy';
     live.ok = false;
