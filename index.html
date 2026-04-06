@@ -1,40 +1,633 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<meta name="apple-mobile-web-app-capable" content="yes" />
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-<meta name="apple-mobile-web-app-title" content="DCA Tool" />
-<meta name="theme-color" content="#0a0a0a" />
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="DCA Tool"/>
+<meta name="theme-color" content="#0a0a0a"/>
 <title>DCA Tool</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap');
-
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 :root{
-  --bg:#0a0a0a; --surf:#141414; --brd:#282828; --brd2:#363636;
-  --text:#efefef; --text2:#a0a0a0; --text3:#555;
-  --green:#4ade80; --yellow:#facc15; --orange:#f97316; --red:#f87171;
-  --blue:#60a5fa; --purple:#e879f9;
-  --mono:'IBM Plex Mono',monospace; --sans:'IBM Plex Sans',sans-serif;
+  --bg:#0a0a0a;--surf:#141414;--brd:#282828;--brd2:#383838;
+  --text:#f0f0f0;--text2:#a8a8a8;--text3:#555;
+  --green:#4ade80;--yellow:#facc15;--orange:#f97316;--red:#f87171;
+  --blue:#60a5fa;--purple:#e879f9;
+  --mono:'IBM Plex Mono',monospace;--sans:'IBM Plex Sans',sans-serif;
 }
 body{background:var(--bg);color:var(--text);font-family:var(--mono);min-height:100vh;
   padding:env(safe-area-inset-top,24px) 18px env(safe-area-inset-bottom,40px);
   padding-top:max(env(safe-area-inset-top),28px);}
 .wrap{max-width:520px;margin:0 auto;padding-bottom:52px;}
 
-/* Header */
-.header{text-align:center;padding:22px 0 28px;}
-.header .eye{font-family:var(--sans);font-size:11px;letter-spacing:.22em;color:var(--text3);text-transform:uppercase;margin-bottom:8px;}
-.header h1{font-family:var(--sans);font-size:28px;font-weight:700;color:var(--text);letter-spacing:-.03em;}
+.header{text-align:center;padding:22px 0 26px;}
+.eye{font-family:var(--sans);font-size:11px;letter-spacing:.22em;color:var(--text3);text-transform:uppercase;margin-bottom:8px;}
+h1{font-family:var(--sans);font-size:28px;font-weight:700;color:var(--text);letter-spacing:-.03em;}
 
-/* Fetch bar */
 .fbar{display:flex;align-items:center;gap:12px;margin-bottom:18px;}
 .fstat{font-family:var(--sans);font-size:13px;color:var(--text3);flex:1;}
-.fstat.live{color:var(--green);} .fstat.err{color:var(--red);}
+.fstat.live{color:var(--green);}.fstat.err{color:var(--red);}
 .fbtn{font-family:var(--sans);font-size:11px;font-weight:600;background:var(--surf);
   border:1px solid var(--brd2);color:var(--text2);padding:9px 18px;border-radius:8px;
+  cursor:pointer;letter-spacing:.06em;transition:all .15s;}
+.fbtn:hover{border-color:#606060;color:var(--text);}
+
+.card{background:var(--surf);border:1px solid var(--brd);border-radius:18px;padding:22px;margin-bottom:14px;}
+.clbl{font-family:var(--sans);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--text3);margin-bottom:16px;}
+
+/* Signal cards */
+.sig{background:var(--surf);border:1px solid var(--brd);border-radius:18px;padding:20px 22px 14px;margin-bottom:14px;transition:border-color .3s;}
+.sig-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px;}
+.slbl{font-family:var(--sans);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--text3);margin-bottom:8px;}
+.sval{font-size:52px;font-weight:600;line-height:1;color:var(--text3);transition:color .3s;}
+.sig-right{text-align:right;padding-top:2px;}
+.spill{font-family:var(--sans);font-size:12px;font-weight:700;padding:5px 12px;border-radius:7px;
+  display:inline-block;letter-spacing:.04em;text-transform:uppercase;
+  background:var(--brd);color:var(--text3);transition:all .3s;margin-bottom:6px;}
+.ssub{font-size:12px;color:var(--text3);}
+
+/* Chart */
+.chart-outer{position:relative;width:100%;margin-top:6px;user-select:none;}
+.chart-outer svg{display:block;width:100%;overflow:visible;}
+.scrub-tip{
+  position:absolute;background:#1c1c1c;border:1px solid var(--brd2);
+  border-radius:8px;padding:6px 11px;font-family:var(--sans);font-size:12px;
+  color:var(--text);pointer-events:none;white-space:nowrap;display:none;
+  transform:translateX(-50%);z-index:10;top:-34px;
+}
+
+/* Themes */
+.tg{border-color:#1a3d1a !important;}.tg .sval{color:var(--green);}.tg .spill{background:#0d2d1a;color:var(--green);}
+.ty{border-color:#3d3200 !important;}.ty .sval{color:var(--yellow);}.ty .spill{background:#2d2500;color:var(--yellow);}
+.to{border-color:#3d1c00 !important;}.to .sval{color:var(--orange);}.to .spill{background:#2d1400;color:var(--orange);}
+.tr{border-color:#3d1414 !important;}.tr .sval{color:var(--red);}.tr .spill{background:#2d0d0d;color:var(--red);}
+
+/* Inputs */
+.igrid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.ig label{font-family:var(--sans);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);display:block;margin-bottom:6px;}
+.ig input,.ig textarea{font-family:var(--mono);background:var(--bg);border:1px solid var(--brd2);color:var(--text);
+  padding:11px 13px;border-radius:10px;width:100%;outline:none;-webkit-appearance:none;transition:border-color .15s;}
+.ig input{font-size:18px;}
+.ig textarea{font-size:12px;resize:vertical;min-height:90px;line-height:1.5;}
+.ig input:focus,.ig textarea:focus{border-color:#505050;}
+.ig input::placeholder,.ig textarea::placeholder{color:var(--text3);}
+
+/* CAPE paste area */
+.cape-status{font-family:var(--sans);font-size:12px;margin-top:10px;min-height:18px;}
+.cape-status.ok{color:var(--green);}.cape-status.err{color:var(--red);}
+.cape-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+.clear-btn{font-family:var(--sans);font-size:11px;background:transparent;border:1px solid var(--brd2);
+  color:var(--text3);padding:4px 10px;border-radius:6px;cursor:pointer;transition:all .15s;}
+.clear-btn:hover{border-color:#505050;color:var(--text2);}
+
+/* Rec */
+.rec{background:var(--surf);border:1px solid var(--brd);border-radius:18px;padding:24px;margin-bottom:14px;transition:background .3s,border-color .3s;}
+.reye{font-family:var(--sans);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--text3);margin-bottom:12px;}
+.rmain{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:18px;}
+.rmult{font-size:80px;font-weight:600;line-height:1;color:var(--text3);transition:color .3s;}
+.rright{text-align:right;}
+.rblbl{font-family:var(--sans);font-size:11px;color:var(--text3);margin-bottom:4px;}
+.rbinp{font-family:var(--mono);font-size:24px;background:var(--bg);border:1px solid var(--brd2);color:var(--text);
+  padding:9px 13px;border-radius:10px;width:150px;text-align:right;outline:none;-webkit-appearance:none;}
+.rtlbl{font-family:var(--sans);font-size:11px;color:var(--text3);margin-top:12px;}
+.rtamt{font-size:40px;font-weight:600;color:var(--text3);transition:color .3s;}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;}
+.chip{font-family:var(--sans);font-size:12px;font-weight:600;padding:5px 12px;border-radius:7px;
+  border:1px solid var(--brd2);color:var(--text2);letter-spacing:.04em;}
+.rexp{font-family:var(--sans);font-size:15px;color:var(--text2);line-height:1.75;white-space:pre-line;}
+
+/* Tier table */
+.trow{display:flex;align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid var(--brd);transition:opacity .25s;}
+.trow:last-child{border-bottom:none;}
+.dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+.tn{flex:1;font-family:var(--sans);font-size:15px;color:var(--text2);}
+.tr2{font-size:13px;color:var(--text3);width:58px;text-align:right;}
+.tm{font-size:14px;width:36px;text-align:right;}
+.ta{font-size:14px;color:var(--text2);width:76px;text-align:right;}
+
+.footer{font-size:11px;color:var(--text3);text-align:center;margin-top:24px;font-family:var(--sans);line-height:2.2;}
+.footer a{color:#484848;text-decoration:none;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="header">
+  <div class="eye">Three-Signal Tiered DCA</div>
+  <h1>S&P 500 Contribution Tool</h1>
+</div>
+
+<div class="fbar">
+  <span class="fstat" id="fstat">Connecting…</span>
+  <button class="fbtn" onclick="fetchAll()">↻ Refresh</button>
+</div>
+
+<!-- Drawdown -->
+<div class="sig" id="sigDD">
+  <div class="sig-top">
+    <div><div class="slbl">S&amp;P 500 Drawdown from ATH</div><div class="sval" id="valDD">—</div></div>
+    <div class="sig-right"><div class="spill" id="pillDD">—</div><div class="ssub" id="subDD"></div></div>
+  </div>
+  <div class="chart-outer" id="outerDD">
+    <svg id="cDD" height="150" viewBox="0 0 440 150" preserveAspectRatio="none"></svg>
+    <div class="scrub-tip" id="tipDD"></div>
+  </div>
+</div>
+
+<!-- VIX -->
+<div class="sig" id="sigVIX">
+  <div class="sig-top">
+    <div><div class="slbl">VIX — Volatility / Fear Index</div><div class="sval" id="valVIX">—</div></div>
+    <div class="sig-right"><div class="spill" id="pillVIX">—</div><div class="ssub" id="subVIX"></div></div>
+  </div>
+  <div class="chart-outer" id="outerVIX">
+    <svg id="cVIX" height="150" viewBox="0 0 440 150" preserveAspectRatio="none"></svg>
+    <div class="scrub-tip" id="tipVIX"></div>
+  </div>
+</div>
+
+<!-- CAPE -->
+<div class="sig" id="sigCAPE">
+  <div class="sig-top">
+    <div><div class="slbl">Shiller CAPE Ratio</div><div class="sval" id="valCAPE">—</div></div>
+    <div class="sig-right"><div class="spill" id="pillCAPE">—</div><div class="ssub" id="subCAPE">Paste data below ↓</div></div>
+  </div>
+  <div class="chart-outer" id="outerCAPE">
+    <svg id="cCAPE" height="150" viewBox="0 0 440 150" preserveAspectRatio="none"></svg>
+    <div class="scrub-tip" id="tipCAPE"></div>
+  </div>
+</div>
+
+<!-- CAPE paste input -->
+<div class="card">
+  <div class="cape-row">
+    <div class="clbl" style="margin-bottom:0">CAPE Data — paste from multpl.com/shiller-pe/table/by-year</div>
+    <button class="clear-btn" onclick="clearCAPE()">Clear</button>
+  </div>
+  <div style="margin-top:12px;font-family:var(--sans);font-size:12px;color:var(--text3);margin-bottom:10px;line-height:1.6;">
+    Go to the link above → select all text in the table → copy → paste here. Done once, remembered forever.
+  </div>
+  <div class="ig">
+    <textarea id="capePaste" placeholder="Paste table text here…" oninput="parseCAPE()"></textarea>
+  </div>
+  <div class="cape-status" id="capeStatus"></div>
+</div>
+
+<!-- Manual override -->
+<div class="card">
+  <div class="clbl">Manual override — leave blank to use live data</div>
+  <div class="igrid2">
+    <div class="ig"><label>Drawdown %</label><input id="inDD" type="number" inputmode="decimal" min="0" max="100" step="0.1" placeholder="auto" oninput="update()"/></div>
+    <div class="ig"><label>VIX</label><input id="inVIX" type="number" inputmode="decimal" min="0" step="0.1" placeholder="auto" oninput="update()"/></div>
+  </div>
+</div>
+
+<!-- Recommendation -->
+<div class="rec" id="recCard">
+  <div class="reye">Recommended multiplier</div>
+  <div class="rmain">
+    <div class="rmult" id="recMult">—</div>
+    <div class="rright">
+      <div class="rblbl">Base monthly</div>
+      <input type="number" class="rbinp" id="base" value="500" min="0" step="50" oninput="update()"/>
+      <div class="rtlbl">This month</div>
+      <div class="rtamt" id="recTotal">—</div>
+    </div>
+  </div>
+  <div class="chips" id="chips"></div>
+  <div class="rexp" id="rexp">Waiting for signals…</div>
+</div>
+
+<!-- Tier table -->
+<div class="card">
+  <div class="clbl" id="tierLbl">Drawdown tiers</div>
+  <div id="tierTable"></div>
+</div>
+
+<div class="footer">
+  Not financial advice<br>
+  <a href="https://www.slickcharts.com/sp500/drawdown" target="_blank">slickcharts.com/sp500/drawdown</a> ·
+  <a href="https://multpl.com/shiller-pe/table/by-year" target="_blank">multpl.com/shiller-pe</a>
+</div>
+</div>
+
+<script>
+const PROXY='https://dca-proxy.alex-g-veross.workers.dev';
+const TIERS=[
+  {label:"Near ATH",  range:"< 5%",  min:0, max:5,       mult:1.0, accent:"#4ade80",bg:"#0a1f0e",border:"#1a3d1a"},
+  {label:"Mild Dip",  range:"5–10%", min:5, max:10,      mult:1.75,accent:"#facc15",bg:"#1a1500",border:"#3d3200"},
+  {label:"Correction",range:"10–20%",min:10,max:20,      mult:2.5, accent:"#f97316",bg:"#1a0d00",border:"#3d1c00"},
+  {label:"Bear Mkt",  range:"20%+",  min:20,max:Infinity,mult:3.5, accent:"#f87171",bg:"#1a0a0a",border:"#3d1414"},
+];
+
+const W=440,H=150,PL=44,PR=12,PT=12,PB=30;
+const CW=W-PL-PR, CH=H-PT-PB;
+
+let live={dd:null,vix:null,vixH:[],ddH:[],ok:false};
+// capeData: [{date, val}] newest first (raw from paste), reversed for chart
+let capeData=[];
+
+// ── CAPE PASTE PARSER ──
+function parseCAPE(){
+  const raw=document.getElementById('capePaste').value.trim();
+  const st=document.getElementById('capeStatus');
+  if(!raw){capeData=[];update();st.textContent='';return;}
+
+  const regex=/([A-Z][a-z]+ \d+, \d{4})\s+([\d.]+)/g;
+  const rows=[];
+  let m;
+  while((m=regex.exec(raw))!==null){
+    rows.push({date:m[1], val:parseFloat(m[2])});
+  }
+
+  if(rows.length===0){
+    st.className='cape-status err';
+    st.textContent='Could not parse — make sure you copied the full table text.';
+    capeData=[];update();return;
+  }
+
+  // rows are newest-first from multpl
+  capeData=rows;
+  // Save to localStorage so it persists
+  try{localStorage.setItem('capeData',JSON.stringify(capeData));}catch(e){}
+
+  st.className='cape-status ok';
+  st.textContent=`✓ ${rows.length} data points loaded · ${rows[0].date}: ${rows[0].val}`;
+  update();
+}
+
+function clearCAPE(){
+  document.getElementById('capePaste').value='';
+  document.getElementById('capeStatus').textContent='';
+  capeData=[];
+  try{localStorage.removeItem('capeData');}catch(e){}
+  update();
+}
+
+function loadCAPEFromStorage(){
+  try{
+    const stored=localStorage.getItem('capeData');
+    if(stored){
+      capeData=JSON.parse(stored);
+      const ta=document.getElementById('capePaste');
+      // Reconstruct the text so the textarea isn't empty
+      ta.value=capeData.map(r=>`${r.date}  ${r.val}`).join('\n');
+      const st=document.getElementById('capeStatus');
+      st.className='cape-status ok';
+      st.textContent=`✓ ${capeData.length} data points (saved) · ${capeData[0].date}: ${capeData[0].val}`;
+    }
+  }catch(e){}
+}
+
+// ── FETCH ──
+async function fetchAll(){
+  const st=document.getElementById('fstat');
+  st.className='fstat';st.textContent='Fetching…';
+  const res=await Promise.allSettled([
+    fetch(`${PROXY}/sp500`).then(r=>r.json()),
+    fetch(`${PROXY}/vix`).then(r=>r.json()),
+    fetch(`${PROXY}/vixhistory`).then(r=>r.json()),
+  ]);
+  let ok=false;
+  if(res[0].status==='fulfilled'){
+    try{
+      const c=res[0].value.chart.result[0].indicators.quote[0].close.filter(v=>v!=null);
+      const ath=Math.max(...c),cur=c[c.length-1];
+      live.dd=((ath-cur)/ath)*100;
+      live.ddH=c.map(v=>((ath-v)/ath)*100);
+      // Store timestamps for x-axis labels
+      live.ddTs=res[0].value.chart.result[0].timestamp;
+      document.getElementById('inDD').placeholder=live.dd.toFixed(1);
+      ok=true;
+    }catch(e){}
+  }
+  if(res[1].status==='fulfilled'){
+    try{
+      const c=res[1].value.chart.result[0].indicators.quote[0].close.filter(v=>v!=null);
+      live.vix=c[c.length-1];
+      document.getElementById('inVIX').placeholder=live.vix.toFixed(1);
+      ok=true;
+    }catch(e){}
+  }
+  if(res[2].status==='fulfilled'){
+    try{
+      live.vixH=res[2].value.chart.result[0].indicators.quote[0].close.filter(v=>v!=null);
+      live.vixTs=res[2].value.chart.result[0].timestamp;
+    }catch(e){}
+  }
+  live.ok=ok;
+  const t=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+  st.className=ok?'fstat live':'fstat err';
+  st.textContent=ok?`Live · ${t}`:'Fetch failed — enter manually';
+  update();
+}
+
+// ── CHART ENGINE ──
+function xS(i,n){return PL+(i/(n-1||1))*CW;}
+function yS(v,mn,mx){return PT+CH-((v-mn)/(mx-mn||1))*CH;}
+
+function niceScale(mn,mx,ticks){
+  const range=mx-mn;
+  const rough=range/ticks;
+  const mag=Math.pow(10,Math.floor(Math.log10(rough)));
+  const steps=[1,2,2.5,5,10];
+  const step=steps.find(s=>s*mag>=rough)*mag;
+  const lo=Math.floor(mn/step)*step;
+  const hi=Math.ceil(mx/step)*step;
+  const result=[];
+  for(let v=lo;v<=hi+step*.01;v+=step) if(v>=mn-step*.01) result.push(parseFloat(v.toFixed(10)));
+  return result;
+}
+
+function buildChart(svgId,outerDivId,tipId,vals,xLabels,refs,lineColor,yUnit,fmtFn,bgHtml){
+  const svg=document.getElementById(svgId);
+  if(!vals||vals.length<2){svg.innerHTML=bgHtml||'';return;}
+
+  const dataMin=Math.min(...vals);
+  const dataMax=Math.max(...vals);
+  const yMn=0;
+  const yMx=refs.length
+    ? Math.max(...refs.map(r=>r.v),dataMax)*1.1
+    : dataMax*1.15;
+
+  const yTicks=niceScale(yMn,yMx,5);
+  let h=bgHtml||'';
+
+  // Y gridlines + labels
+  yTicks.forEach(tick=>{
+    if(tick<yMn||tick>yMx*1.01) return;
+    const y=yS(tick,yMn,yMx).toFixed(1);
+    h+=`<line x1="${PL}" y1="${y}" x2="${W-PR}" y2="${y}" stroke="#1d1d1d" stroke-width="1"/>`;
+    h+=`<text x="${PL-5}" y="${(parseFloat(y)+3.5).toFixed(1)}" font-size="9" fill="#505050" text-anchor="end" font-family="IBM Plex Mono">${tick}${yUnit}</text>`;
+  });
+
+  // Reference lines
+  refs.forEach(r=>{
+    const y=yS(r.v,yMn,yMx).toFixed(1);
+    h+=`<line x1="${PL}" y1="${y}" x2="${W-PR}" y2="${y}" stroke="${r.c}" stroke-width="1.2" stroke-dasharray="5,4" opacity="0.55"/>`;
+    h+=`<text x="${W-PR-3}" y="${(parseFloat(y)-3).toFixed(1)}" font-size="9" fill="${r.c}" text-anchor="end" font-family="IBM Plex Sans" opacity="0.8">${r.l}</text>`;
+  });
+
+  // Data line
+  const pts=vals.map((v,i)=>`${xS(i,vals.length).toFixed(1)},${yS(v,yMn,yMx).toFixed(1)}`);
+  h+=`<polyline points="${pts.join(' ')}" fill="none" stroke="${lineColor}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" opacity="0.9"/>`;
+  const lp=pts[pts.length-1].split(',');
+  h+=`<circle cx="${lp[0]}" cy="${lp[1]}" r="4" fill="${lineColor}"/>`;
+
+  // X axis labels — spread evenly
+  if(xLabels&&xLabels.length>1){
+    const slots=Math.min(xLabels.length,7);
+    for(let i=0;i<slots;i++){
+      const idx=Math.round(i/(slots-1)*(xLabels.length-1));
+      const x=xS(idx,xLabels.length).toFixed(1);
+      h+=`<text x="${x}" y="${(H-6).toFixed(1)}" font-size="9" fill="#505050" text-anchor="middle" font-family="IBM Plex Mono">${xLabels[idx]}</text>`;
+    }
+  }
+
+  // Axis border line
+  h+=`<line x1="${PL}" y1="${PT}" x2="${PL}" y2="${PT+CH}" stroke="#282828" stroke-width="1"/>`;
+  h+=`<line x1="${PL}" y1="${PT+CH}" x2="${W-PR}" y2="${PT+CH}" stroke="#282828" stroke-width="1"/>`;
+
+  // Crosshair (hidden)
+  h+=`<line id="${svgId}_cx" x1="${PL}" y1="${PT}" x2="${PL}" y2="${PT+CH}" stroke="#ffffff" stroke-width="1" stroke-dasharray="3,3" opacity="0.3" display="none"/>`;
+  h+=`<circle id="${svgId}_dot" cx="${PL}" cy="${PT}" r="4" fill="${lineColor}" display="none"/>`;
+
+  svg.innerHTML=h;
+
+  // Scrub interaction
+  const outer=document.getElementById(outerDivId);
+  const tip=document.getElementById(tipId);
+
+  function scrub(clientX){
+    const rect=outer.getBoundingClientRect();
+    const svgX=(clientX-rect.left)*(W/rect.width);
+    const frac=Math.max(0,Math.min(1,(svgX-PL)/CW));
+    const idx=Math.round(frac*(vals.length-1));
+    const v=vals[idx];
+    const cx=document.getElementById(`${svgId}_cx`);
+    const dot=document.getElementById(`${svgId}_dot`);
+    const px=xS(idx,vals.length);
+    const py=yS(v,yMn,yMx);
+    if(cx){cx.setAttribute('x1',px.toFixed(1));cx.setAttribute('x2',px.toFixed(1));cx.setAttribute('display','inline');}
+    if(dot){dot.setAttribute('cx',px.toFixed(1));dot.setAttribute('cy',py.toFixed(1));dot.setAttribute('display','inline');}
+    const lbl=xLabels?xLabels[idx]||'':'';
+    tip.textContent=(lbl?lbl+' · ':'')+fmtFn(v);
+    tip.style.display='block';
+    const pxPct=((clientX-rect.left)/rect.width)*100;
+    tip.style.left=Math.max(15,Math.min(pxPct,85))+'%';
+  }
+  function hide(){
+    tip.style.display='none';
+    const cx=document.getElementById(`${svgId}_cx`);
+    const dot=document.getElementById(`${svgId}_dot`);
+    if(cx)cx.setAttribute('display','none');
+    if(dot)dot.setAttribute('display','none');
+  }
+  // Remove old listeners by cloning
+  const fresh=outer.cloneNode(true);
+  outer.parentNode.replaceChild(fresh,outer);
+  const tip2=document.getElementById(tipId);
+  fresh.addEventListener('mousemove',e=>scrub(e.clientX));
+  fresh.addEventListener('mouseleave',hide);
+  fresh.addEventListener('touchmove',e=>{e.preventDefault();scrub(e.touches[0].clientX);},{passive:false});
+  fresh.addEventListener('touchend',hide);
+}
+
+function tsToYear(ts){return new Date(ts*1000).getFullYear().toString().slice(2)+"'";}
+function tsToMon(ts){return new Date(ts*1000).toLocaleString('en',{month:'short'});}
+
+function drawDD(vals,timestamps){
+  const xlbls=timestamps?timestamps.map(ts=>tsToYear(ts)):[];
+  buildChart('cDD','outerDD','tipDD',vals,xlbls,
+    [{v:5,c:'#facc15',l:'5%'},{v:10,c:'#f97316',l:'10%'},{v:20,c:'#f87171',l:'20%'}],
+    '#f97316','%',v=>v.toFixed(2)+'%',null);
+}
+
+function drawVIX(vals,timestamps){
+  const xlbls=timestamps?timestamps.map(ts=>tsToMon(ts)):[];
+  buildChart('cVIX','outerVIX','tipVIX',vals,xlbls,
+    [{v:15,c:'#4ade80',l:'calm 15'},{v:20,c:'#facc15',l:'watch 20'},{v:30,c:'#f97316',l:'fear 30'},{v:40,c:'#f87171',l:'panic 40'}],
+    '#60a5fa','',v=>v.toFixed(1),null);
+}
+
+function drawCAPE(data){
+  // data: [{date,val}] newest-first → reverse for chart
+  const pts=[...data].reverse();
+  const vals=pts.map(p=>p.val);
+  const xlbls=pts.map(p=>{
+    const yr=p.date.match(/\d{4}/);
+    return yr?yr[0].slice(2)+"'":p.date;
+  });
+
+  if(vals.length<1){document.getElementById('cCAPE').innerHTML='';return;}
+
+  const yMn=0, yMx=Math.max(48,...vals)*1.06;
+  const bands=[
+    {lo:0, hi:20,c:'#4ade80',l:'Cheap'},
+    {lo:20,hi:25,c:'#a3e635',l:'Fair'},
+    {lo:25,hi:30,c:'#facc15',l:'Pricey'},
+    {lo:30,hi:35,c:'#f97316',l:'Exp.'},
+    {lo:35,hi:60,c:'#f87171',l:'V.Exp'},
+  ];
+  let bg='';
+  bands.forEach(b=>{
+    const yTop=yS(Math.min(b.hi,yMx),yMn,yMx);
+    const yBot=yS(Math.max(b.lo,0),yMn,yMx);
+    const bh=Math.max(0,yBot-yTop);
+    bg+=`<rect x="${PL}" y="${yTop.toFixed(1)}" width="${CW}" height="${bh.toFixed(1)}" fill="${b.c}" opacity="0.09"/>`;
+    const my=(yTop+yBot)/2;
+    bg+=`<text x="${W-PR-4}" y="${(my+3.5).toFixed(1)}" font-size="8.5" fill="${b.c}" text-anchor="end" font-family="IBM Plex Sans" opacity="0.55">${b.l}</text>`;
+  });
+  [[20,'#a3e635'],[25,'#facc15'],[30,'#f97316'],[35,'#f87171']].forEach(([v,c])=>{
+    bg+=`<line x1="${PL}" y1="${yS(v,yMn,yMx).toFixed(1)}" x2="${W-PR}" y2="${yS(v,yMn,yMx).toFixed(1)}" stroke="${c}" stroke-width="0.7" opacity="0.3"/>`;
+  });
+
+  buildChart('cCAPE','outerCAPE','tipCAPE',vals,xlbls,[],
+    '#e879f9','',v=>v.toFixed(2),bg);
+}
+
+// ── RATING ──
+function rateDD(d){
+  if(d<5) return{label:"Near ATH",  th:"tg",mult:1.0, desc:`${d.toFixed(1)}% off ATH`};
+  if(d<10)return{label:"Mild Dip",  th:"ty",mult:1.75,desc:`${d.toFixed(1)}% off ATH`};
+  if(d<20)return{label:"Correction",th:"to",mult:2.5, desc:`${d.toFixed(1)}% off ATH`};
+  return       {label:"Bear Mkt",  th:"tr",mult:3.5, desc:`${d.toFixed(1)}% off ATH`};
+}
+function rateVIX(v){
+  if(v<15)return{label:"Complacent",th:"tg",factor:0.85,desc:"Low fear"};
+  if(v<20)return{label:"Normal",    th:"tg",factor:1.0, desc:"Calm"};
+  if(v<30)return{label:"Elevated",  th:"ty",factor:1.1, desc:"Anxiety rising"};
+  if(v<40)return{label:"High Fear", th:"to",factor:1.25,desc:"Fear"};
+  return        {label:"Panic",     th:"tr",factor:1.4, desc:"Panic selling"};
+}
+function rateCAPE(now,histVals){
+  let lf,ll,lt;
+  if     (now<20){lf=1.20;ll="Cheap";    lt="tg";}
+  else if(now<25){lf=1.10;ll="Fair";     lt="tg";}
+  else if(now<30){lf=1.00;ll="Pricey";   lt="ty";}
+  else if(now<35){lf=0.95;ll="Expensive";lt="to";}
+  else           {lf=0.90;ll="Very Exp.";lt="tr";}
+  let tf=1.0,tl="",td="→";
+  // Compare current to ~6 entries ago (6 years back in annual data)
+  const ref=histVals.length>=6?histVals[histVals.length-7]:histVals[0];
+  if(ref!==undefined){
+    const d=now-ref;
+    if     (d<-4){tf=1.15;tl="Compressing fast";td="↓↓";}
+    else if(d<-1){tf=1.08;tl="Compressing";     td="↓";}
+    else if(d<=1){tf=1.00;tl="Flat";            td="→";}
+    else if(d<=4){tf=0.92;tl="Expanding";       td="↑";}
+    else         {tf=0.85;tl="Expanding fast";  td="↑↑";}
+  }
+  return{lf,ll,lt,tf,tl,td,combined:lf*tf};
+}
+
+function setTh(id,th){
+  const el=document.getElementById(id);
+  el.className=el.className.replace(/\b(tg|ty|to|tr)\b/g,'').trim()+' '+th;
+}
+function explain(dd,vix,cape,cr,mult){
+  const p=[];
+  if(dd<5)       p.push("Market near all-time highs");
+  else if(dd<10) p.push(`Mild ${dd.toFixed(1)}% dip from ATH`);
+  else if(dd<20) p.push(`${dd.toFixed(1)}% correction in progress`);
+  else           p.push(`Deep ${dd.toFixed(1)}% bear market`);
+  if(vix<20)     p.push(`low fear (VIX ${vix.toFixed(0)})`);
+  else if(vix<30)p.push(`elevated anxiety (VIX ${vix.toFixed(0)})`);
+  else if(vix<40)p.push(`high fear (VIX ${vix.toFixed(0)})`);
+  else           p.push(`panic (VIX ${vix.toFixed(0)})`);
+  if(cape!==null&&cr){const tr=cr.tl?`, CAPE ${cr.td} ${cr.tl.toLowerCase()}`:'';p.push(`CAPE ${cape.toFixed(0)} — ${cr.ll.toLowerCase()}${tr}`);}
+  const act=mult>=3.5?"Deploy aggressively. Maximum buying signal.":
+            mult>=2.5?"Strong buying opportunity. Go well above baseline.":
+            mult>=1.5?"Add meaningfully above your baseline.":
+            mult>=1.0?"Market not on sale. Stick to baseline.":
+                      "Expensive + calm = minimum contribution.";
+  return p.join(" · ")+".\n\n"+act;
+}
+function fmt(n){return"$"+Math.round(n).toLocaleString("en-US");}
+
+// ── MAIN UPDATE ──
+function update(){
+  const base=parseFloat(document.getElementById("base").value)||0;
+  const dd =document.getElementById("inDD").value !==''?parseFloat(document.getElementById("inDD").value) :live.dd;
+  const vix=document.getElementById("inVIX").value!==''?parseFloat(document.getElementById("inVIX").value):live.vix;
+
+  // CAPE from paste data (newest first → [0] is current)
+  const capeNow=capeData.length>0?capeData[0].val:null;
+  // For trend: all values oldest→newest (reversed), excluding the most recent
+  const capeHist=[...capeData].reverse().map(p=>p.val);
+
+  // Charts
+  if(live.ddH.length>1) drawDD(live.ddH,live.ddTs||null);
+  if(live.vixH.length>1)drawVIX(live.vixH,live.vixTs||null);
+  if(capeData.length>0) drawCAPE(capeData);
+
+  // DD card
+  if(dd!==null&&!isNaN(dd)){
+    const dr=rateDD(dd);setTh('sigDD',dr.th);
+    document.getElementById('valDD').textContent=dd.toFixed(1)+'%';
+    document.getElementById('pillDD').textContent=dr.label;
+    document.getElementById('subDD').textContent=dr.desc;
+  }
+  // VIX card
+  if(vix!==null&&!isNaN(vix)){
+    const vr=rateVIX(vix);setTh('sigVIX',vr.th);
+    document.getElementById('valVIX').textContent=vix.toFixed(1);
+    document.getElementById('pillVIX').textContent=vr.label;
+    document.getElementById('subVIX').textContent=vr.desc;
+  }
+  // CAPE card
+  if(capeNow!==null&&!isNaN(capeNow)){
+    const cr=rateCAPE(capeNow,capeHist);setTh('sigCAPE',cr.lt);
+    document.getElementById('valCAPE').textContent=capeNow.toFixed(1);
+    document.getElementById('pillCAPE').textContent=cr.ll;
+    document.getElementById('subCAPE').textContent=cr.td+' '+(cr.tl||'no trend yet');
+  }
+
+  // Tier table
+  const act=(dd!==null&&!isNaN(dd))?TIERS.find(t=>dd>=t.min&&dd<t.max):null;
+  document.getElementById("tierLbl").textContent=`Drawdown tiers · base ${fmt(base)}`;
+  document.getElementById("tierTable").innerHTML=TIERS.map(t=>`
+    <div class="trow" style="opacity:${t===act?1:0.28}">
+      <div class="dot" style="background:${t.accent}"></div>
+      <div class="tn">${t.label}</div>
+      <div class="tr2">${t.range}</div>
+      <div class="tm" style="color:${t.accent}">${t.mult}×</div>
+      <div class="ta">${fmt(base*t.mult)}</div>
+    </div>`).join('');
+
+  // Rec
+  if(dd!==null&&!isNaN(dd)&&vix!==null&&!isNaN(vix)){
+    const dr=rateDD(dd),vr=rateVIX(vix);
+    const cr=(capeNow!==null&&!isNaN(capeNow))?rateCAPE(capeNow,capeHist):null;
+    const raw=dr.mult*vr.factor*(cr?cr.combined:1.0);
+    const mult=Math.max(0.5,Math.min(5.0,raw));
+    const tier=TIERS.find(t=>dd>=t.min&&dd<t.max);
+    const rc=document.getElementById('recCard');
+    rc.style.background=tier.bg;rc.style.borderColor=tier.border;
+    const me=document.getElementById('recMult');
+    me.textContent=mult.toFixed(2)+'×';me.style.color=tier.accent;
+    const cc=cr?`<div class="chip">CAPE ×${cr.combined.toFixed(2)}</div>`:'';
+    document.getElementById('chips').innerHTML=
+      `<div class="chip">DD ${dr.mult}×</div><div class="chip">VIX ×${vr.factor.toFixed(2)}</div>${cc}
+       <div class="chip" style="color:${tier.accent};border-color:${tier.border}">= ${mult.toFixed(2)}×</div>`;
+    document.getElementById('rexp').textContent=explain(dd,vix,capeNow,cr,mult);
+    if(base>0){
+      document.getElementById('recTotal').textContent=fmt(Math.round(base*mult));
+      document.getElementById('recTotal').style.color=tier.accent;
+    }
+  }
+}
+
+// ── INIT ──
+loadCAPEFromStorage();
+update();
+fetchAll();
+</script>
+</body>
+</html>  border:1px solid var(--brd2);color:var(--text2);padding:9px 18px;border-radius:8px;
   cursor:pointer;letter-spacing:.06em;transition:all .15s;}
 .fbtn:hover{border-color:#505050;color:var(--text);}
 
