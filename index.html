@@ -192,7 +192,7 @@ h1{font-family:var(--sans);font-size:28px;font-weight:700;color:var(--text);lett
     <div class="rmult" id="recMult">—</div>
     <div class="rright">
       <div class="rblbl">Base monthly</div>
-      <input type="number" class="rbinp" id="base" value="1000" min="0" step="50" oninput="update()"/>
+      <input type="number" class="rbinp" id="base" value="500" min="0" step="50" oninput="update()"/>
       <div class="rtlbl">This month</div>
       <div class="rtamt" id="recTotal">—</div>
     </div>
@@ -297,8 +297,8 @@ async function fetchAll(){
       const c=res[0].value.chart.result[0].indicators.quote[0].close.filter(v=>v!=null);
       const ath=Math.max(...c),cur=c[c.length-1];
       live.dd=((ath-cur)/ath)*100;
-      live.ddH=c.map(v=>((ath-v)/ath)*100);
-      // Store timestamps for x-axis labels
+      live.ddH=c;        // raw closing prices for chart
+      live.ddATH=ath;    // ATH price for reference lines
       live.ddTs=res[0].value.chart.result[0].timestamp;
       document.getElementById('inDD').placeholder=live.dd.toFixed(1);
       ok=true;
@@ -439,11 +439,16 @@ function buildChart(svgId,outerDivId,tipId,vals,xLabels,refs,lineColor,yUnit,fmt
 function tsToYear(ts){return new Date(ts*1000).getFullYear().toString().slice(2)+"'";}
 function tsToMon(ts){return new Date(ts*1000).toLocaleString('en',{month:'short'});}
 
-function drawDD(vals,timestamps){
+function drawDD(vals,timestamps,ath){
   const xlbls=timestamps?timestamps.map(ts=>tsToYear(ts)):[];
-  buildChart('cDD','outerDD','tipDD',vals,xlbls,
-    [{v:5,c:'#facc15',l:'5%'},{v:10,c:'#f97316',l:'10%'},{v:20,c:'#f87171',l:'20%'}],
-    '#f97316','%',v=>v.toFixed(2)+'%',null);
+  const refs=ath?[
+    {v:ath,      c:'#4ade80',l:'ATH'},
+    {v:ath*0.95, c:'#facc15',l:'-5%'},
+    {v:ath*0.90, c:'#f97316',l:'-10%'},
+    {v:ath*0.80, c:'#f87171',l:'-20%'},
+  ]:[];
+  buildChart('cDD','outerDD','tipDD',vals,xlbls,refs,
+    '#60a5fa','',v=>'$'+Math.round(v).toLocaleString(),null);
 }
 
 function drawVIX(vals,timestamps){
@@ -560,7 +565,7 @@ function update(){
   const capeHist=[...capeData].reverse().map(p=>p.val);
 
   // Charts
-  if(live.ddH.length>1) drawDD(live.ddH,live.ddTs||null);
+  if(live.ddH.length>1) drawDD(live.ddH,live.ddTs||null,live.ddATH||null);
   if(live.vixH.length>1)drawVIX(live.vixH,live.vixTs||null);
   if(capeData.length>0) drawCAPE(capeData);
 
