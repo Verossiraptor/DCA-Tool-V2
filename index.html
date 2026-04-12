@@ -5,170 +5,368 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
-<meta name="apple-mobile-web-app-title" content="DCA Tool"/>
-<meta name="theme-color" content="#0a0a0a"/>
-<title>DCA Tool</title>
+<meta name="apple-mobile-web-app-title" content="Dynamic DCA"/>
+<meta name="theme-color" content="#080b0f"/>
+<title>Dynamic DCA Advisor</title>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&display=swap');
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 :root{
-  --bg:#0a0a0a;--surf:#141414;--brd:#282828;--brd2:#383838;
-  --text:#f0f0f0;--text2:#a8a8a8;--text3:#555;
-  --green:#4ade80;--yellow:#facc15;--orange:#f97316;--red:#f87171;
-  --blue:#60a5fa;--purple:#e879f9;
-  --mono:'IBM Plex Mono',monospace;--sans:'IBM Plex Sans',sans-serif;
+  --bg:#080b0f;
+  --s1:#0d1117;--s2:#131920;--s3:#1a2230;
+  --brd:#1e2a38;--brd2:#263547;
+  --text:#dde4ed;--t2:#8896a8;--t3:#455568;
+  --green:#22d3a0;--yellow:#f5c542;--orange:#f07832;--red:#e84040;
+  --blue:#4a9eff;
+  --mono:'DM Mono',monospace;--sans:'DM Sans',sans-serif;
 }
-body{background:var(--bg);color:var(--text);font-family:var(--mono);min-height:100vh;
-  padding:env(safe-area-inset-top,24px) 18px env(safe-area-inset-bottom,40px);
-  padding-top:max(env(safe-area-inset-top),28px);}
-.wrap{max-width:520px;margin:0 auto;padding-bottom:52px;}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);
+  min-height:100vh;
+  padding:env(safe-area-inset-top,16px) max(16px,env(safe-area-inset-left)) env(safe-area-inset-bottom,40px) max(16px,env(safe-area-inset-right));}
+.wrap{max-width:660px;margin:0 auto;padding-top:4px;}
 
-.header{text-align:center;padding:22px 0 26px;}
-.eye{font-family:var(--sans);font-size:11px;letter-spacing:.22em;color:var(--text3);text-transform:uppercase;margin-bottom:8px;}
-h1{font-family:var(--sans);font-size:28px;font-weight:700;color:var(--text);letter-spacing:-.03em;}
-
-.fbar{display:flex;align-items:center;gap:12px;margin-bottom:18px;}
-.fstat{font-family:var(--sans);font-size:13px;color:var(--text3);flex:1;}
+/* ── HEADER ── */
+.hdr{padding:28px 0 24px;border-bottom:1px solid var(--brd);}
+.hdr-eyebrow{font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--t3);margin-bottom:10px;}
+.hdr h1{font-size:clamp(20px,5vw,28px);font-weight:700;color:var(--text);letter-spacing:-.03em;line-height:1.15;}
+.hdr h1 em{font-style:normal;color:var(--green);}
+.hdr-sub{font-size:12px;color:var(--t3);margin-top:8px;line-height:1.6;}
+.hdr-meta{display:flex;align-items:center;justify-content:space-between;margin-top:16px;flex-wrap:wrap;gap:10px;}
+.fstat{font-family:var(--mono);font-size:11px;color:var(--t3);}
 .fstat.live{color:var(--green);}.fstat.err{color:var(--red);}
-.fbtn{font-family:var(--sans);font-size:11px;font-weight:600;background:var(--surf);
-  border:1px solid var(--brd2);color:var(--text2);padding:9px 18px;border-radius:8px;
-  cursor:pointer;letter-spacing:.06em;transition:all .15s;}
-.fbtn:hover{border-color:#606060;color:var(--text);}
+.refresh-btn{font-family:var(--sans);font-size:11px;font-weight:600;letter-spacing:.06em;
+  background:var(--s2);border:1px solid var(--brd2);color:var(--t2);
+  padding:7px 16px;border-radius:6px;cursor:pointer;transition:all .15s;}
+.refresh-btn:hover{border-color:var(--green);color:var(--green);}
 
-.card{background:var(--surf);border:1px solid var(--brd);border-radius:18px;padding:22px;margin-bottom:14px;}
-.clbl{font-family:var(--sans);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--text3);margin-bottom:16px;}
+/* ── MAIN RECOMMENDATION ── */
+.rec{
+  background:var(--s1);border:1px solid var(--brd);border-radius:16px;
+  padding:24px;margin:20px 0 0;
+  transition:border-color .35s, background .35s;
+  position:relative;overflow:hidden;
+}
+.rec::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse at top left, rgba(34,211,160,0.04) 0%, transparent 60%);
+  pointer-events:none;transition:background .35s;
+}
+.rec.tier-0::before{background:radial-gradient(ellipse at top left, rgba(34,211,160,0.05) 0%, transparent 60%);}
+.rec.tier-1::before{background:radial-gradient(ellipse at top left, rgba(245,197,66,0.06) 0%, transparent 60%);}
+.rec.tier-2::before{background:radial-gradient(ellipse at top left, rgba(240,120,50,0.08) 0%, transparent 60%);}
+.rec.tier-3::before{background:radial-gradient(ellipse at top left, rgba(232,64,64,0.10) 0%, transparent 60%);}
+.rec.tier-4::before{background:radial-gradient(ellipse at top left, rgba(232,64,64,0.14) 0%, transparent 60%);}
 
-/* Signal cards */
-.sig{background:var(--surf);border:1px solid var(--brd);border-radius:18px;padding:20px 22px 14px;margin-bottom:14px;transition:border-color .3s;}
-.sig-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px;}
-.slbl{font-family:var(--sans);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--text3);margin-bottom:8px;}
-.sval{font-size:52px;font-weight:600;line-height:1;color:var(--text3);transition:color .3s;}
-.sig-right{text-align:right;padding-top:2px;}
-.spill{font-family:var(--sans);font-size:12px;font-weight:700;padding:5px 12px;border-radius:7px;
-  display:inline-block;letter-spacing:.04em;text-transform:uppercase;
-  background:var(--brd);color:var(--text3);transition:all .3s;margin-bottom:6px;}
-.ssub{font-size:12px;color:var(--text3);}
+.rec-label{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--t3);margin-bottom:16px;}
+.rec-body{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;}
+.rec-left{}
+.rec-tier-name{font-size:13px;font-weight:600;color:var(--t2);letter-spacing:.02em;margin-bottom:6px;}
+.rec-mult{font-family:var(--mono);font-size:clamp(64px,14vw,96px);font-weight:500;line-height:1;
+  color:var(--green);transition:color .35s;letter-spacing:-.03em;}
+.rec-right{text-align:right;}
+.rec-base-lbl{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--t3);margin-bottom:6px;}
+.rec-base-inp{
+  font-family:var(--mono);font-size:22px;background:var(--bg);
+  border:1px solid var(--brd2);color:var(--text);
+  padding:8px 12px;border-radius:8px;width:138px;text-align:right;
+  outline:none;-webkit-appearance:none;transition:border-color .15s;}
+.rec-base-inp:focus{border-color:var(--green);}
+.rec-invest-lbl{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--t3);margin-top:12px;margin-bottom:4px;}
+.rec-invest{font-family:var(--mono);font-size:clamp(28px,6vw,40px);font-weight:500;
+  color:var(--green);transition:color .35s;}
+.rec-divider{border:none;border-top:1px solid var(--brd);margin:18px 0;}
+.rec-explain{font-size:13px;color:var(--t2);line-height:1.85;white-space:pre-line;}
+
+/* ── TIER TABLE ── */
+.tier-card{background:var(--s1);border:1px solid var(--brd);border-radius:16px;padding:20px 22px;margin-top:14px;}
+.card-label{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--t3);margin-bottom:16px;}
+.trow{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--brd);transition:opacity .2s;}
+.trow:last-child{border-bottom:none;}
+.t-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.t-name{flex:1;font-size:13px;color:var(--t2);}
+.t-range{font-family:var(--mono);font-size:11px;color:var(--t3);width:58px;text-align:right;}
+.t-mult{font-family:var(--mono);font-size:13px;width:36px;text-align:right;}
+.t-amt{font-family:var(--mono);font-size:13px;color:var(--t2);width:78px;text-align:right;}
+.trow.active{opacity:1 !important;}
+.trow.dim{opacity:0.22;}
+
+/* ── SIGNAL CARDS ── */
+.sig{background:var(--s1);border:1px solid var(--brd);border-radius:16px;
+  padding:20px 22px;margin-top:14px;transition:border-color .3s;}
+.sig.green{border-color:#1a3d2e;}
+.sig.yellow{border-color:#3d3100;}
+.sig.orange{border-color:#3d2000;}
+.sig.red{border-color:#3d1010;}
+.sig-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px;}
+.sig-lbl{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--t3);margin-bottom:8px;}
+.sig-val{font-family:var(--mono);font-size:clamp(38px,8vw,52px);font-weight:500;line-height:1;color:var(--t3);transition:color .3s;}
+.sig-right{text-align:right;}
+.sig-pill{font-family:var(--sans);font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;
+  padding:4px 10px;border-radius:5px;display:inline-block;
+  background:var(--s3);color:var(--t3);transition:all .3s;margin-bottom:4px;}
+.sig-sub{font-family:var(--mono);font-size:11px;color:var(--t3);transition:color .3s;}
+
+/* Signal color states */
+.sig-val.green,.sig-pill.green,.sig-sub.green{color:var(--green);}
+.sig-pill.green{background:rgba(34,211,160,.12);}
+.sig-val.yellow,.sig-pill.yellow,.sig-sub.yellow{color:var(--yellow);}
+.sig-pill.yellow{background:rgba(245,197,66,.12);}
+.sig-val.orange,.sig-pill.orange,.sig-sub.orange{color:var(--orange);}
+.sig-pill.orange{background:rgba(240,120,50,.12);}
+.sig-val.red,.sig-pill.red,.sig-sub.red{color:var(--red);}
+.sig-pill.red{background:rgba(232,64,64,.12);}
+.sig-val.blue,.sig-pill.blue,.sig-sub.blue{color:var(--blue);}
+.sig-pill.blue{background:rgba(74,158,255,.12);}
 
 /* Chart */
-.chart-outer{position:relative;width:100%;margin-top:6px;user-select:none;}
-.chart-outer svg{display:block;width:100%;overflow:visible;}
-.scrub-tip{
-  position:absolute;background:#1c1c1c;border:1px solid var(--brd2);
-  border-radius:8px;padding:6px 11px;font-family:var(--sans);font-size:12px;
-  color:var(--text);pointer-events:none;white-space:nowrap;display:none;
-  transform:translateX(-50%);z-index:10;top:-34px;
-}
+.chart-wrap{position:relative;margin-top:14px;user-select:none;-webkit-user-select:none;}
+.chart-wrap svg{display:block;width:100%;overflow:visible;}
+.chart-tip{position:absolute;top:-32px;background:var(--s3);border:1px solid var(--brd2);border-radius:6px;
+  padding:5px 10px;font-family:var(--sans);font-size:11px;color:var(--text);
+  pointer-events:none;white-space:nowrap;display:none;transform:translateX(-50%);z-index:10;}
 
-/* Themes */
-.tg{border-color:#1a3d1a !important;}.tg .sval{color:var(--green);}.tg .spill{background:#0d2d1a;color:var(--green);}
-.ty{border-color:#3d3200 !important;}.ty .sval{color:var(--yellow);}.ty .spill{background:#2d2500;color:var(--yellow);}
-.to{border-color:#3d1c00 !important;}.to .sval{color:var(--orange);}.to .spill{background:#2d1400;color:var(--orange);}
-.tr{border-color:#3d1414 !important;}.tr .sval{color:var(--red);}.tr .spill{background:#2d0d0d;color:var(--red);}
+/* Context note — VIX/CAPE below signal */
+.ctx-note{font-size:12px;color:var(--t3);line-height:1.75;margin-top:14px;padding-top:14px;border-top:1px solid var(--brd);}
+.ctx-note strong{color:var(--t2);}
+.ctx-note a{color:var(--t3);text-decoration:none;border-bottom:1px solid var(--brd2);}
+.ctx-note a:hover{color:var(--t2);}
 
-/* Inputs */
-.igrid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
-.ig label{font-family:var(--sans);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);display:block;margin-bottom:6px;}
-.ig input,.ig textarea{font-family:var(--mono);background:var(--bg);border:1px solid var(--brd2);color:var(--text);
-  padding:11px 13px;border-radius:10px;width:100%;outline:none;-webkit-appearance:none;transition:border-color .15s;}
-.ig input{font-size:18px;}
-.ig textarea{font-size:12px;resize:vertical;min-height:90px;line-height:1.5;}
-.ig input:focus,.ig textarea:focus{border-color:#505050;}
-.ig input::placeholder,.ig textarea::placeholder{color:var(--text3);}
+/* Context legend rows */
+.ctx-rows{margin-top:12px;display:flex;flex-direction:column;gap:6px;}
+.ctx-row{display:flex;gap:10px;align-items:flex-start;}
+.ctx-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-top:4px;}
+.ctx-name{font-size:12px;font-weight:700;white-space:nowrap;min-width:130px;}
+.ctx-desc{font-size:12px;color:var(--t3);line-height:1.5;}
 
-/* CAPE paste area */
-.cape-status{font-family:var(--sans);font-size:12px;margin-top:10px;min-height:18px;}
+/* Calendar */
+.cal-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px;margin-top:4px;}
+.cal-month{background:var(--bg);border:1px solid var(--brd);border-radius:10px;padding:12px;}
+.cal-mname{font-family:var(--sans);font-size:11px;font-weight:700;color:var(--t2);margin-bottom:8px;letter-spacing:.05em;}
+.cal-days{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;}
+.cal-dow{font-size:8px;color:var(--t3);text-align:center;padding-bottom:3px;}
+.cal-day{font-size:11px;color:var(--t3);text-align:center;padding:3px 2px;border-radius:4px;}
+.cal-day.wknd{color:var(--brd2);}
+.cal-day.open{background:rgba(34,211,160,.12);color:var(--green);font-weight:700;border:1px solid rgba(34,211,160,.2);}
+.cal-day.today{outline:1px solid var(--brd2);}
+.cal-note{font-size:11px;color:var(--t3);margin-top:10px;line-height:1.6;}
+
+/* Manual override */
+.override-card{background:var(--s1);border:1px solid var(--brd);border-radius:16px;padding:20px 22px;margin-top:14px;}
+.igrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.ig label{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--t3);display:block;margin-bottom:6px;}
+.ig input{font-family:var(--mono);background:var(--bg);border:1px solid var(--brd2);color:var(--text);
+  font-size:16px;padding:10px 12px;border-radius:8px;width:100%;outline:none;-webkit-appearance:none;transition:border-color .15s;}
+.ig input:focus{border-color:var(--blue);}
+.ig input::placeholder{color:var(--t3);}
+
+/* CAPE paste */
+.cape-card{background:var(--s1);border:1px solid var(--brd);border-radius:16px;padding:20px 22px;margin-top:14px;}
+.cape-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;gap:8px;flex-wrap:wrap;}
+.clear-btn{font-size:11px;background:transparent;border:1px solid var(--brd2);color:var(--t3);
+  padding:4px 10px;border-radius:5px;cursor:pointer;transition:all .15s;font-family:var(--sans);}
+.clear-btn:hover{border-color:var(--brd2);color:var(--t2);}
+.ig textarea{font-family:var(--mono);background:var(--bg);border:1px solid var(--brd2);color:var(--text);
+  font-size:11px;padding:10px 12px;border-radius:8px;width:100%;resize:vertical;min-height:80px;
+  line-height:1.5;outline:none;-webkit-appearance:none;transition:border-color .15s;}
+.ig textarea:focus{border-color:var(--blue);}
+.ig textarea::placeholder{color:var(--t3);}
+.cape-status{font-size:11px;font-family:var(--mono);margin-top:8px;min-height:16px;color:var(--t3);}
 .cape-status.ok{color:var(--green);}.cape-status.err{color:var(--red);}
-.cape-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
-.clear-btn{font-family:var(--sans);font-size:11px;background:transparent;border:1px solid var(--brd2);
-  color:var(--text3);padding:4px 10px;border-radius:6px;cursor:pointer;transition:all .15s;}
-.clear-btn:hover{border-color:#505050;color:var(--text2);}
 
-/* Rec */
-.rec{background:var(--surf);border:1px solid var(--brd);border-radius:18px;padding:24px;margin-bottom:14px;transition:background .3s,border-color .3s;}
-.reye{font-family:var(--sans);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--text3);margin-bottom:12px;}
-.rmain{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:18px;}
-.rmult{font-size:80px;font-weight:600;line-height:1;color:var(--text3);transition:color .3s;}
-.rright{text-align:right;}
-.rblbl{font-family:var(--sans);font-size:11px;color:var(--text3);margin-bottom:4px;}
-.rbinp{font-family:var(--mono);font-size:24px;background:var(--bg);border:1px solid var(--brd2);color:var(--text);
-  padding:9px 13px;border-radius:10px;width:150px;text-align:right;outline:none;-webkit-appearance:none;}
-.rtlbl{font-family:var(--sans);font-size:11px;color:var(--text3);margin-top:12px;}
-.rtamt{font-size:40px;font-weight:600;color:var(--text3);transition:color .3s;}
-.chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;}
-.chip{font-family:var(--sans);font-size:12px;font-weight:600;padding:5px 12px;border-radius:7px;
-  border:1px solid var(--brd2);color:var(--text2);letter-spacing:.04em;}
-.rexp{font-family:var(--sans);font-size:15px;color:var(--text2);line-height:1.75;white-space:pre-line;}
+/* Backtest badge */
+.bt-badge{background:rgba(34,211,160,.06);border:1px solid rgba(34,211,160,.15);border-radius:10px;
+  padding:14px 18px;margin-top:14px;font-size:12px;color:var(--t2);line-height:1.7;}
+.bt-badge strong{color:var(--green);}
+.bt-badge a{color:var(--t3);text-decoration:none;border-bottom:1px solid rgba(34,211,160,.2);}
+.bt-badge a:hover{color:var(--green);}
 
-/* Tier table */
-.trow{display:flex;align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid var(--brd);transition:opacity .25s;}
-.trow:last-child{border-bottom:none;}
-.dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
-.tn{flex:1;font-family:var(--sans);font-size:15px;color:var(--text2);}
-.tr2{font-size:13px;color:var(--text3);width:58px;text-align:right;}
-.tm{font-size:14px;width:36px;text-align:right;}
-.ta{font-size:14px;color:var(--text2);width:76px;text-align:right;}
+footer{text-align:center;font-size:11px;color:var(--t3);padding:32px 0 8px;line-height:1.8;}
 
-.footer{font-size:11px;color:var(--text3);text-align:center;margin-top:24px;font-family:var(--sans);line-height:2.2;}
-.footer a{color:#484848;text-decoration:none;}
+  /* ── SITE NAV ── */
+  .site-nav {
+    background: #05080c;
+    border-bottom: 1px solid #0f1923;
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    gap: 0;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    font-family: 'DM Sans', 'Segoe UI', sans-serif;
+  }
+  .site-nav .site-logo {
+    font-size: 12px;
+    font-weight: 700;
+    color: #22d3a0;
+    letter-spacing: .04em;
+    padding: 14px 20px 14px 0;
+    border-right: 1px solid #0f1923;
+    margin-right: 4px;
+    white-space: nowrap;
+    text-decoration: none;
+  }
+  .site-nav a.site-page {
+    font-size: 12px;
+    font-weight: 500;
+    color: #455568;
+    text-decoration: none;
+    padding: 14px 16px;
+    border-bottom: 2px solid transparent;
+    white-space: nowrap;
+    transition: color .15s, border-color .15s;
+    letter-spacing: .01em;
+  }
+  .site-nav a.site-page:hover { color: #8896a8; }
+  .site-nav a.site-page.active { color: #dde4ed; border-bottom-color: #22d3a0; }
+
 </style>
 </head>
 <body>
+<nav class="site-nav">
+  <a class="site-logo" href="index.html">Dynamic DCA</a>
+  <a class="site-page active" href="index.html">↗ Advisor</a>
+  <a class="site-page" href="study.html">Backtest Study</a>
+</nav>
 <div class="wrap">
 
-<div class="header">
-  <div class="eye">Three-Signal Tiered DCA</div>
-  <h1>S&P 500 Contribution Tool</h1>
+<!-- HEADER -->
+<div class="hdr">
+  <div class="hdr-eyebrow">S&P 500 · Dynamic Dollar-Cost Averaging</div>
+  <h1>What should I invest<br>this month?</h1>
+  <p class="hdr-sub">Drawdown-scaled DCA. Buy your baseline when the market is near highs. Buy more when it's on sale. The deeper the drop, the bigger the buy. Verified against 26 years of real data.</p>
+  <div class="hdr-meta">
+    <span class="fstat" id="fstat">Connecting…</span>
+    <button class="refresh-btn" onclick="fetchAll()">↻ Refresh</button>
+  </div>
 </div>
 
-<div class="fbar">
-  <span class="fstat" id="fstat">Connecting…</span>
-  <button class="fbtn" onclick="fetchAll()">↻ Refresh</button>
+<!-- MAIN RECOMMENDATION -->
+<div class="rec tier-0" id="recCard">
+  <div class="rec-label">This month's recommendation</div>
+  <div class="rec-body">
+    <div class="rec-left">
+      <div class="rec-tier-name" id="recTierName">—</div>
+      <div class="rec-mult" id="recMult">—</div>
+    </div>
+    <div class="rec-right">
+      <div class="rec-base-lbl">Base monthly ($)</div>
+      <input type="number" class="rec-base-inp" id="base" value="1000" min="0" step="50" oninput="update()"/>
+      <div class="rec-invest-lbl">Invest this month</div>
+      <div class="rec-invest" id="recInvest">—</div>
+    </div>
+  </div>
+  <hr class="rec-divider"/>
+  <div class="rec-explain" id="recExplain">Fetching live market data…</div>
 </div>
 
-<!-- Drawdown -->
+<!-- TIER TABLE -->
+<div class="tier-card">
+  <div class="card-label" id="tierLabel">Drawdown tiers</div>
+  <div id="tierTable"></div>
+</div>
+
+<!-- BACKTEST BADGE -->
+<div class="bt-badge">
+  <strong>Backtested 2000–2026:</strong> This exact tier structure — applied mechanically across 4 bear markets — turned a $1,000/mo baseline into <strong>$3.14M</strong> vs <strong>$1.28M</strong> for flat DCA. 461 shares accumulated vs 188. Average cost per share: $1,421 vs $1,678. <a href="https://dca-proxy.alex-g-veross.workers.dev" target="_blank">Full study ↗</a>
+</div>
+
+<!-- CALENDAR -->
+<div class="tier-card" style="margin-top:14px;">
+  <div class="card-label">Month-end execution dates</div>
+  <div class="cal-grid" id="calGrid"></div>
+  <div class="cal-note">★ Green = last trading day of month (approximate — excludes US market holidays). Execute your buy at or near the closing price.</div>
+</div>
+
+<!-- DRAWDOWN SIGNAL -->
 <div class="sig" id="sigDD">
   <div class="sig-top">
-    <div><div class="slbl">S&amp;P 500 Drawdown from ATH</div><div class="sval" id="valDD">—</div></div>
-    <div class="sig-right"><div class="spill" id="pillDD">—</div><div class="ssub" id="subDD"></div></div>
+    <div>
+      <div class="sig-lbl">S&P 500 Drawdown from ATH</div>
+      <div class="sig-val" id="valDD">—</div>
+    </div>
+    <div class="sig-right">
+      <div class="sig-pill" id="pillDD">—</div><br/>
+      <div class="sig-sub" id="subDD"></div>
+    </div>
   </div>
-  <div class="chart-outer" id="outerDD">
-    <svg id="cDD" height="150" viewBox="0 0 440 150" preserveAspectRatio="none"></svg>
-    <div class="scrub-tip" id="tipDD"></div>
+  <div class="chart-wrap" id="wrapDD">
+    <svg id="cDD" height="240" viewBox="0 0 440 240" preserveAspectRatio="none"></svg>
+    <div class="chart-tip" id="tipDD"></div>
+  </div>
+  <div class="ctx-note">
+    Drawdown = how far the S&P 500 currently sits below its all-time closing high. A 20% drawdown means you're buying the same index at 20% off its recent peak price. The backtest shows that systematically buying more during these windows — using these exact four tiers — is the primary driver of long-run outperformance. The chart plots daily closing prices against the four tier thresholds. When the price crosses below a dashed line, the multiplier steps up.
+    <br/><br/>
+    <strong>Source:</strong> <a href="https://finance.yahoo.com" target="_blank">Yahoo Finance</a> via RapidAPI · <a href="https://www.slickcharts.com/sp500/drawdown" target="_blank">slickcharts.com/sp500/drawdown</a>
   </div>
 </div>
 
-<!-- VIX -->
+<!-- VIX SIGNAL — context only, does not modify multiplier -->
 <div class="sig" id="sigVIX">
   <div class="sig-top">
-    <div><div class="slbl">VIX — Volatility / Fear Index</div><div class="sval" id="valVIX">—</div></div>
-    <div class="sig-right"><div class="spill" id="pillVIX">—</div><div class="ssub" id="subVIX"></div></div>
+    <div>
+      <div class="sig-lbl">VIX — Market Fear Gauge</div>
+      <div class="sig-val" id="valVIX">—</div>
+    </div>
+    <div class="sig-right">
+      <div class="sig-pill" id="pillVIX">—</div><br/>
+      <div class="sig-sub" id="subVIX">context only</div>
+    </div>
   </div>
-  <div class="chart-outer" id="outerVIX">
-    <svg id="cVIX" height="150" viewBox="0 0 440 150" preserveAspectRatio="none"></svg>
-    <div class="scrub-tip" id="tipVIX"></div>
+  <div class="chart-wrap" id="wrapVIX">
+    <svg id="cVIX" height="240" viewBox="0 0 440 240" preserveAspectRatio="none"></svg>
+    <div class="chart-tip" id="tipVIX"></div>
+  </div>
+  <div class="ctx-note">
+    <strong>VIX does not modify your multiplier in this tool.</strong> The backtest showed that pure drawdown tiers are the empirical driver of outperformance — the DD+VIX variant delivered $2.69M vs $3.14M for drawdown-only, meaning the VIX hedge cost ~$450K in final value. VIX is shown here as context: a high VIX during a drawdown confirms the fear is real, not a quiet orderly dip. Historically, VIX 40+ (GFC, COVID) has coincided with the best long-term entry points in the index's history.
+    <div class="ctx-rows" style="margin-top:12px;">
+      <div class="ctx-row"><div class="ctx-dot" style="background:var(--green)"></div><span class="ctx-name" style="color:var(--green);">Calm (&lt;15)</span><span class="ctx-desc">Unusually quiet. A drawdown here may be an orderly sell-off rather than capitulation.</span></div>
+      <div class="ctx-row"><div class="ctx-dot" style="background:var(--green)"></div><span class="ctx-name" style="color:var(--green);">Normal (15–20)</span><span class="ctx-desc">Typical range. No additional signal from fear.</span></div>
+      <div class="ctx-row"><div class="ctx-dot" style="background:var(--yellow)"></div><span class="ctx-name" style="color:var(--yellow);">Elevated (20–30)</span><span class="ctx-desc">Rising anxiety. Investors are pricing in uncertainty. Drawdown buys here tend to be better quality.</span></div>
+      <div class="ctx-row"><div class="ctx-dot" style="background:var(--orange)"></div><span class="ctx-name" style="color:var(--orange);">High Fear (30–40)</span><span class="ctx-desc">Significant market stress. Historically near major dislocations. This is what the strategy is built for.</span></div>
+      <div class="ctx-row"><div class="ctx-dot" style="background:var(--red)"></div><span class="ctx-name" style="color:var(--red);">Panic (40+)</span><span class="ctx-desc">Extreme fear — comparable to GFC (VIX 59) and COVID (VIX 53). The backtest's best entry points were here. Follow the tier. Buy.</span></div>
+    </div>
+    <div style="margin-top:12px;"><a href="https://finance.yahoo.com/quote/%5EVIX" target="_blank">Yahoo Finance ^VIX</a> · <a href="https://www.cboe.com/tradable_products/vix/faqs/" target="_blank">CBOE VIX FAQ</a></div>
   </div>
 </div>
 
-<!-- CAPE -->
+<!-- CAPE SIGNAL — context only -->
 <div class="sig" id="sigCAPE">
   <div class="sig-top">
-    <div><div class="slbl">Shiller CAPE Ratio</div><div class="sval" id="valCAPE">—</div></div>
-    <div class="sig-right"><div class="spill" id="pillCAPE">—</div><div class="ssub" id="subCAPE">Paste data below ↓</div></div>
+    <div>
+      <div class="sig-lbl">Shiller CAPE Ratio</div>
+      <div class="sig-val" id="valCAPE">—</div>
+    </div>
+    <div class="sig-right">
+      <div class="sig-pill" id="pillCAPE">—</div><br/>
+      <div class="sig-sub" id="subCAPE">context only</div>
+    </div>
   </div>
-  <div class="chart-outer" id="outerCAPE">
-    <svg id="cCAPE" height="150" viewBox="0 0 440 150" preserveAspectRatio="none"></svg>
-    <div class="scrub-tip" id="tipCAPE"></div>
+  <div class="chart-wrap" id="wrapCAPE">
+    <svg id="cCAPE" height="240" viewBox="0 0 440 240" preserveAspectRatio="none"></svg>
+    <div class="chart-tip" id="tipCAPE"></div>
+  </div>
+  <div class="ctx-note">
+    <strong>CAPE does not modify your multiplier.</strong> The backtest started in January 2000 with CAPE at 43.77 — near today's level of ~39 — and still produced a 4.80x wealth multiple over 26 years. CAPE is useful as a long-horizon warning: high readings have historically meant lower forward 10-year returns. But the dot-com crash that followed CAPE 44 in 2000 ultimately <em>created</em> the buying opportunity that drove most of the strategy's outperformance. High CAPE signals caution about long-run expectations, not a reason to stop the strategy.
+    <div class="ctx-rows" style="margin-top:12px;">
+      <div class="ctx-row"><div class="ctx-dot" style="background:var(--green)"></div><span class="ctx-name" style="color:var(--green);">Cheap (&lt;20)</span><span class="ctx-desc">Below historical average (~17). Maximum long-run return potential.</span></div>
+      <div class="ctx-row"><div class="ctx-dot" style="background:var(--green)"></div><span class="ctx-name" style="color:var(--green);">Fair (20–25)</span><span class="ctx-desc">Reasonable by modern standards. Normal forward return expectations.</span></div>
+      <div class="ctx-row"><div class="ctx-dot" style="background:var(--yellow)"></div><span class="ctx-name" style="color:var(--yellow);">Pricey (25–30)</span><span class="ctx-desc">Above historical norm. Expect somewhat muted forward returns.</span></div>
+      <div class="ctx-row"><div class="ctx-dot" style="background:var(--orange)"></div><span class="ctx-name" style="color:var(--orange);">Expensive (30–35)</span><span class="ctx-desc">Historically elevated. Lower expected 10-year returns. Strategy still works — buy the drawdowns.</span></div>
+      <div class="ctx-row"><div class="ctx-dot" style="background:var(--red)"></div><span class="ctx-name" style="color:var(--red);">Very Expensive (35+)</span><span class="ctx-desc">Rare territory. Jan 2000 CAPE was 43.77. Today ~39. The strategy was backtested from this level. Compressed return expectations — but the crashes that follow expensive markets are exactly when this strategy shines.</span></div>
+    </div>
+    <div style="margin-top:12px;"><a href="https://multpl.com/shiller-pe/table/by-month" target="_blank">multpl.com/shiller-pe</a> · <a href="https://www.econ.yale.edu/~shiller/" target="_blank">Robert Shiller, Yale</a></div>
   </div>
 </div>
 
-<!-- CAPE paste input -->
-<div class="card">
+<!-- CAPE PASTE -->
+<div class="cape-card">
   <div class="cape-row">
-    <div class="clbl" style="margin-bottom:0">CAPE Data — paste from multpl.com/shiller-pe/table/by-year</div>
+    <div class="card-label" style="margin-bottom:0">CAPE — paste from multpl.com</div>
     <button class="clear-btn" onclick="clearCAPE()">Clear</button>
   </div>
-  <div style="margin-top:12px;font-family:var(--sans);font-size:12px;color:var(--text3);margin-bottom:10px;line-height:1.6;">
-    Go to the link above → select all text in the table → copy → paste here. Done once, remembered forever.
+  <div style="font-size:12px;color:var(--t3);margin:8px 0 12px;line-height:1.7;">
+    Go to <a href="https://multpl.com/shiller-pe/table/by-month" target="_blank" style="color:var(--t3);border-bottom:1px solid var(--brd2);text-decoration:none;">multpl.com/shiller-pe/table/by-month</a> → select and copy the table. You only need back to ~2000 (25 years is sufficient for context).
   </div>
   <div class="ig">
     <textarea id="capePaste" placeholder="Paste table text here…" oninput="parseCAPE()"></textarea>
@@ -176,89 +374,287 @@ h1{font-family:var(--sans);font-size:28px;font-weight:700;color:var(--text);lett
   <div class="cape-status" id="capeStatus"></div>
 </div>
 
-<!-- Manual override -->
-<div class="card">
-  <div class="clbl">Manual override — leave blank to use live data</div>
-  <div class="igrid2">
-    <div class="ig"><label>Drawdown %</label><input id="inDD" type="number" inputmode="decimal" min="0" max="100" step="0.1" placeholder="auto" oninput="update()"/></div>
+<!-- MANUAL OVERRIDE -->
+<div class="override-card">
+  <div class="card-label">Manual override — leave blank to use live data</div>
+  <div class="igrid">
+    <div class="ig"><label>Drawdown %</label><input id="inDD" type="number" inputmode="decimal" min="0" max="100" step="0.01" placeholder="auto" oninput="update()"/></div>
     <div class="ig"><label>VIX</label><input id="inVIX" type="number" inputmode="decimal" min="0" step="0.1" placeholder="auto" oninput="update()"/></div>
   </div>
 </div>
 
-<!-- Recommendation -->
-<div class="rec" id="recCard">
-  <div class="reye">Recommended multiplier</div>
-  <div class="rmain">
-    <div class="rmult" id="recMult">—</div>
-    <div class="rright">
-      <div class="rblbl">Base monthly</div>
-      <input type="number" class="rbinp" id="base" value="500" min="0" step="50" oninput="update()"/>
-      <div class="rtlbl">This month</div>
-      <div class="rtamt" id="recTotal">—</div>
-    </div>
-  </div>
-  <div class="chips" id="chips"></div>
-  <div class="rexp" id="rexp">Waiting for signals…</div>
-</div>
+<footer>
+  Dynamic DCA Advisor · Backtested 2000–2026 · Not financial advice<br>
+  Data: Yahoo Finance via RapidAPI · CAPE: multpl.com/Shiller
+</footer>
 
-<!-- Tier table -->
-<div class="card">
-  <div class="clbl" id="tierLbl">Drawdown tiers</div>
-  <div id="tierTable"></div>
-</div>
-
-<div class="footer">
-  Not financial advice<br>
-  <a href="https://www.slickcharts.com/sp500/drawdown" target="_blank">slickcharts.com/sp500/drawdown</a> ·
-  <a href="https://multpl.com/shiller-pe/table/by-year" target="_blank">multpl.com/shiller-pe</a>
-</div>
-</div>
+</div><!-- /wrap -->
 
 <script>
-const PROXY='https://dca-proxy.alex-g-veross.workers.dev';
-const TIERS=[
-  {label:"Near ATH",  range:"< 5%",  min:0, max:5,       mult:1.0, accent:"#4ade80",bg:"#0a1f0e",border:"#1a3d1a"},
-  {label:"Mild Dip",  range:"5–10%", min:5, max:10,      mult:1.75,accent:"#facc15",bg:"#1a1500",border:"#3d3200"},
-  {label:"Correction",range:"10–20%",min:10,max:20,      mult:2.5, accent:"#f97316",bg:"#1a0d00",border:"#3d1c00"},
-  {label:"Bear Mkt",  range:"20%+",  min:20,max:Infinity,mult:3.5, accent:"#f87171",bg:"#1a0a0a",border:"#3d1414"},
+const PROXY = 'https://dca-proxy.alex-g-veross.workers.dev';
+
+// ── TIERS (exact values from verified backtest) ──
+const TIERS = [
+  { label:'Near ATH',   range:'< 5%',   min:0,  max:5,        mult:1.0,  accent:'#22d3a0', bg:'rgba(34,211,160,0.04)',  border:'rgba(34,211,160,0.2)',  sigCls:'green',  desc:'Market near all-time high. Invest your baseline.'},
+  { label:'Mild Dip',   range:'5–10%',  min:5,  max:10,       mult:1.75, accent:'#f5c542', bg:'rgba(245,197,66,0.04)',  border:'rgba(245,197,66,0.2)',  sigCls:'yellow', desc:'Minor pullback. 1.75× is modest but meaningful.'},
+  { label:'Correction', range:'10–20%', min:10, max:20,       mult:2.5,  accent:'#f07832', bg:'rgba(240,120,50,0.05)',  border:'rgba(240,120,50,0.2)',  sigCls:'orange', desc:'Proper correction. Deploy 2.5× — historically strong entry zone.'},
+  { label:'Bear Market',range:'20–30%', min:20, max:30,       mult:3.5,  accent:'#e84040', bg:'rgba(232,64,64,0.05)',   border:'rgba(232,64,64,0.2)',   sigCls:'red',    desc:'Bear market. Maximum standard tier. 3.5× all-in.'},
+  { label:'Deep Crash', range:'30%+',   min:30, max:Infinity, mult:3.5,  accent:'#e84040', bg:'rgba(232,64,64,0.07)',   border:'rgba(232,64,64,0.3)',   sigCls:'red',    desc:'Deep crash. 3.5× — these are the months that built the $3.14M.'},
 ];
 
-const W=440,H=150,PL=44,PR=12,PT=12,PB=30;
-const CW=W-PL-PR, CH=H-PT-PB;
+// Display tiers (4 rows — 20%+ and 30%+ share the same mult in the backtest)
+const DISPLAY_TIERS = [
+  { label:'Near ATH',    range:'< 5%',   min:0,  max:5,        mult:1.0,  accent:'#22d3a0' },
+  { label:'Mild Dip',    range:'5–10%',  min:5,  max:10,       mult:1.75, accent:'#f5c542' },
+  { label:'Correction',  range:'10–20%', min:10, max:20,       mult:2.5,  accent:'#f07832' },
+  { label:'Bear Market', range:'20%+',   min:20, max:Infinity, mult:3.5,  accent:'#e84040' },
+];
 
-let live={dd:null,vix:null,vixH:[],ddH:[],ok:false};
-// capeData: [{date, val}] newest first (raw from paste), reversed for chart
+const W=440,H=240,PL=52,PR=12,PT=12,PB=28;
+const CW=W-PL-PR, CH=H-PT-PB;
+let live={dd:null,vix:null,ddH:[],ddTs:[],ddATH:null,vixH:[],vixTs:[]};
 let capeData=[];
 
-// ── CAPE PASTE PARSER ──
+// ── RATING ──
+function rateDD(d){
+  return TIERS.find(t=>d>=t.min&&d<t.max)||TIERS[TIERS.length-1];
+}
+function rateVIX(v){
+  if(v<15) return{label:'Calm',      cls:'green', desc:'Low fear'};
+  if(v<20) return{label:'Normal',    cls:'green', desc:'Normal range'};
+  if(v<30) return{label:'Elevated',  cls:'yellow',desc:'Anxiety rising'};
+  if(v<40) return{label:'High Fear', cls:'orange',desc:'Significant stress'};
+  return         {label:'Panic',     cls:'red',   desc:'Capitulation territory'};
+}
+function rateCAPE(v){
+  if(v<20) return{label:'Cheap',      cls:'green'};
+  if(v<25) return{label:'Fair',       cls:'green'};
+  if(v<30) return{label:'Pricey',     cls:'yellow'};
+  if(v<35) return{label:'Expensive',  cls:'orange'};
+  return         {label:'Very Exp.',  cls:'red'};
+}
+
+function setSigClass(id, cls){
+  const el=document.getElementById(id);
+  el.className=el.className.replace(/\b(green|yellow|orange|red)\b/g,'').trim();
+  if(cls) el.classList.add(cls);
+}
+
+// ── EXPLAIN ──
+function explain(dd, tier, vix, cape){
+  const parts=[];
+  const pct=dd.toFixed(2);
+  if(dd<5)         parts.push(`S&P 500 is ${pct}% below its all-time high — near peak territory. Prices are close to fair market value. No extra deployment warranted this month.`);
+  else if(dd<10)   parts.push(`S&P 500 is ${pct}% below its all-time high — a mild pullback. Not a crisis, but a modest discount from recent peaks. 1.75× deployed.`);
+  else if(dd<20)   parts.push(`S&P 500 is ${pct}% below its all-time high — a meaningful correction. Stocks measurably cheaper than peak. The strategy deploys 2.5× this month.`);
+  else if(dd<30)   parts.push(`S&P 500 is ${pct}% below its all-time high — a full bear market. Deep discount. 3.5× this month. The backtest shows these are the months that move the needle.`);
+  else             parts.push(`S&P 500 is ${pct}% below its all-time high — a deep crash. Maximum 3.5× deployment. The GFC (53% DD) and dot-com (47% DD) months at this level drove the majority of the strategy's $3.14M terminal value.`);
+
+  if(vix!==null){
+    const vr=rateVIX(vix);
+    if(vix<15)       parts.push(`VIX ${vix.toFixed(1)}: Unusually calm. A quiet drawdown — orderly, not panicked. The strategy still buys, but this isn't a high-conviction crash signal.`);
+    else if(vix<20)  parts.push(`VIX ${vix.toFixed(1)}: Normal range. No additional context from fear indicators.`);
+    else if(vix<30)  parts.push(`VIX ${vix.toFixed(1)}: Elevated. Investors are paying more for protection. A good sign that genuine uncertainty exists — these drawdowns tend to be higher quality entry points.`);
+    else if(vix<40)  parts.push(`VIX ${vix.toFixed(1)}: High Fear. Significant market stress. This is closer to the historical conditions that made the 2001–2003 and 2008–2009 crash-buying so profitable.`);
+    else             parts.push(`VIX ${vix.toFixed(1)}: Panic. VIX 40+ historically marks capitulation. The GFC peak was 59.89, COVID was 53.54. If you're in this zone with a deep drawdown, this is precisely the setup the strategy is designed for. Follow the tier.`);
+  }
+
+  if(cape!==null){
+    const cr=rateCAPE(cape);
+    if(cape>=35) parts.push(`CAPE ${cape.toFixed(1)}: Very expensive historically. Long-run forward returns are likely compressed (4–6% nominal). The backtest started at CAPE 43.77 in Jan 2000 and still produced $3.14M — the crash that followed created the opportunity. Context, not a reason to stop.`);
+    else if(cape>=30) parts.push(`CAPE ${cape.toFixed(1)}: Elevated. Above-average market valuation. Lower expected long-run returns, but strategy still operates normally.`);
+  }
+
+  const base=parseFloat(document.getElementById('base').value)||1000;
+  parts.push(`→ Invest ${fmt(base*tier.mult)} this month (${tier.mult}× base of ${fmt(base)}).`);
+  return parts.join('\n\n');
+}
+
+function fmt(n){return '$'+Math.round(n).toLocaleString('en-US');}
+
+// ── CHART ENGINE ──
+function xS(i,n){return PL+(i/(n-1||1))*CW;}
+function yS(v,mn,mx){return PT+CH-((v-mn)/((mx-mn)||1))*CH;}
+function niceScale(mn,mx,t){
+  const rng=mx-mn,r=rng/t;
+  const mag=Math.pow(10,Math.floor(Math.log10(r||1)));
+  const step=[1,2,2.5,5,10].find(s=>s*mag>=r)*mag;
+  const lo=Math.floor(mn/step)*step;
+  const res=[];
+  for(let v=lo;v<=mx+step*.01;v+=step) if(v>=mn-.01) res.push(parseFloat(v.toFixed(10)));
+  return res;
+}
+
+function buildChart(svgId, wrapId, tipId, vals, xlbls, refs, color, fmtFn, preBg){
+  const svg=document.getElementById(svgId);
+  if(!vals||vals.length<2){svg.innerHTML=preBg||'';return;}
+  const yMn=0, rawMx=Math.max(...vals,...refs.map(r=>r.v));
+  const yMx=rawMx*1.09;
+  const yTicks=niceScale(yMn,yMx,5);
+  let h=preBg||'';
+
+  yTicks.forEach(t=>{
+    if(t>yMx*1.01)return;
+    const y=yS(t,yMn,yMx).toFixed(1);
+    h+=`<line x1="${PL}" y1="${y}" x2="${W-PR}" y2="${y}" stroke="#141e2a" stroke-width="1"/>`;
+    const l=t>=1000?(t/1000).toFixed(t%1000===0?0:1)+'k':String(t);
+    h+=`<text x="${PL-6}" y="${(+y+3.5).toFixed(1)}" font-size="9" fill="#334455" text-anchor="end" font-family="DM Mono">${l}</text>`;
+  });
+
+  refs.forEach(r=>{
+    const y=yS(r.v,yMn,yMx).toFixed(1);
+    h+=`<line x1="${PL}" y1="${y}" x2="${W-PR}" y2="${y}" stroke="${r.c}" stroke-width="1.2" stroke-dasharray="5,4" opacity="0.6"/>`;
+    h+=`<text x="${W-PR-3}" y="${(+y-3.5).toFixed(1)}" font-size="9" fill="${r.c}" text-anchor="end" font-family="DM Sans" opacity="0.85">${r.l}</text>`;
+  });
+
+  const pts=vals.map((v,i)=>`${xS(i,vals.length).toFixed(1)},${yS(v,yMn,yMx).toFixed(1)}`);
+  h+=`<polyline points="${pts.join(' ')}" fill="none" stroke="${color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" opacity="0.9"/>`;
+  const lp=pts[pts.length-1].split(',');
+  h+=`<circle cx="${lp[0]}" cy="${lp[1]}" r="4" fill="${color}"/>`;
+
+  if(xlbls&&xlbls.length>1){
+    const slots=Math.min(6,xlbls.length);
+    for(let i=0;i<slots;i++){
+      const idx=Math.round(i/(slots-1)*(xlbls.length-1));
+      h+=`<text x="${xS(idx,xlbls.length).toFixed(1)}" y="${H-6}" font-size="9" fill="#334455" text-anchor="middle" font-family="DM Mono">${xlbls[idx]}</text>`;
+    }
+  }
+  h+=`<line x1="${PL}" y1="${PT}" x2="${PL}" y2="${PT+CH}" stroke="#1e2a38" stroke-width="1"/>`;
+  h+=`<line x1="${PL}" y1="${PT+CH}" x2="${W-PR}" y2="${PT+CH}" stroke="#1e2a38" stroke-width="1"/>`;
+  h+=`<line id="${svgId}_cx" x1="${PL}" y1="${PT}" x2="${PL}" y2="${PT+CH}" stroke="#fff" stroke-width="1" stroke-dasharray="3,3" opacity="0.2" display="none"/>`;
+  h+=`<circle id="${svgId}_dot" cx="0" cy="0" r="4" fill="${color}" opacity="0.9" display="none"/>`;
+  svg.innerHTML=h;
+
+  // Scrub
+  const wrap=document.getElementById(wrapId);
+  const fresh=wrap.cloneNode(true);
+  wrap.parentNode.replaceChild(fresh,wrap);
+  const tip=document.getElementById(tipId);
+  function scrub(cx){
+    const rect=fresh.getBoundingClientRect();
+    const svgX=(cx-rect.left)*(W/rect.width);
+    const frac=Math.max(0,Math.min(1,(svgX-PL)/CW));
+    const idx=Math.round(frac*(vals.length-1));
+    const v=vals[idx];
+    const px=xS(idx,vals.length),py=yS(v,yMn,yMx);
+    const xEl=document.getElementById(svgId+'_cx'),dEl=document.getElementById(svgId+'_dot');
+    if(xEl){xEl.setAttribute('x1',px.toFixed(1));xEl.setAttribute('x2',px.toFixed(1));xEl.setAttribute('display','inline');}
+    if(dEl){dEl.setAttribute('cx',px.toFixed(1));dEl.setAttribute('cy',py.toFixed(1));dEl.setAttribute('display','inline');}
+    const lbl=xlbls?xlbls[idx]||'':'';
+    tip.textContent=(lbl?lbl+' · ':'')+fmtFn(v);
+    tip.style.display='block';
+    tip.style.left=Math.max(10,Math.min(90,(cx-fresh.getBoundingClientRect().left)/fresh.getBoundingClientRect().width*100))+'%';
+  }
+  function hide(){
+    tip.style.display='none';
+    [svgId+'_cx',svgId+'_dot'].forEach(id=>{const el=document.getElementById(id);if(el)el.setAttribute('display','none');});
+  }
+  fresh.addEventListener('mousemove',e=>scrub(e.clientX));
+  fresh.addEventListener('mouseleave',hide);
+  fresh.addEventListener('touchmove',e=>{e.preventDefault();scrub(e.touches[0].clientX);},{passive:false});
+  fresh.addEventListener('touchend',hide);
+}
+
+function tsToYear(ts){return "'"+new Date(ts*1000).getFullYear().toString().slice(2);}
+function tsToMon(ts){return new Date(ts*1000).toLocaleString('en',{month:'short'});}
+
+function drawDD(vals,ts,ath){
+  const yMx=(ath||Math.max(...vals))*1.08;
+  let bg='';
+  if(ath){
+    [[ath,ath*.95,'#22d3a0'],[ath*.95,ath*.90,'#f5c542'],[ath*.90,ath*.80,'#f07832'],[ath*.80,0,'#e84040']].forEach(([hi,lo,c])=>{
+      const yTop=yS(Math.min(hi,yMx),0,yMx);
+      const yBot=yS(Math.max(lo,0),0,yMx);
+      bg+=`<rect x="${PL}" y="${yTop.toFixed(1)}" width="${CW}" height="${Math.max(0,yBot-yTop).toFixed(1)}" fill="${c}" opacity="0.055"/>`;
+    });
+  }
+  const refs=ath?[
+    {v:ath,      c:'#22d3a0',l:'ATH'},
+    {v:ath*.95,  c:'#f5c542',l:'−5%'},
+    {v:ath*.90,  c:'#f07832',l:'−10%'},
+    {v:ath*.80,  c:'#e84040',l:'−20%'},
+  ]:[];
+  buildChart('cDD','wrapDD','tipDD',vals,ts?ts.map(tsToYear):null,refs,'#4a9eff',v=>'$'+Math.round(v).toLocaleString(),bg);
+}
+
+function drawVIX(vals,ts){
+  const yMx=Math.max(55,...vals)*1.06;
+  let bg='';
+  [[15,0,'#22d3a0'],[20,15,'#f5c542'],[30,20,'#f07832'],[yMx,30,'#e84040']].forEach(([hi,lo,c])=>{
+    const yTop=yS(Math.min(hi,yMx),0,yMx);
+    const yBot=yS(Math.max(lo,0),0,yMx);
+    bg+=`<rect x="${PL}" y="${yTop.toFixed(1)}" width="${CW}" height="${Math.max(0,yBot-yTop).toFixed(1)}" fill="${c}" opacity="0.055"/>`;
+  });
+  buildChart('cVIX','wrapVIX','tipVIX',vals,ts?ts.map(tsToMon):null,[
+    {v:15,c:'#22d3a0',l:'calm'},
+    {v:20,c:'#f5c542',l:'watch'},
+    {v:30,c:'#f07832',l:'fear'},
+    {v:40,c:'#e84040',l:'panic'},
+  ],'#4a9eff',v=>v.toFixed(1),bg);
+}
+
+function drawCAPE(data){
+  const pts=[...data].reverse();
+  const vals=pts.map(p=>p.val);
+  if(!vals.length)return;
+  const xlbls=pts.map(p=>{const m=p.date.match(/\d{4}/);return m?"'"+m[0].slice(2):p.date;});
+  const yMx=Math.max(50,...vals)*1.06;
+  let bg='';
+  [[20,0,'#22d3a0'],[25,20,'#a3e635'],[30,25,'#f5c542'],[35,30,'#f07832'],[yMx,35,'#e84040']].forEach(([hi,lo,c],i)=>{
+    const yTop=yS(Math.min(hi,yMx),0,yMx);
+    const yBot=yS(Math.max(lo,0),0,yMx);
+    bg+=`<rect x="${PL}" y="${yTop.toFixed(1)}" width="${CW}" height="${Math.max(0,yBot-yTop).toFixed(1)}" fill="${c}" opacity="0.07"/>`;
+  });
+  buildChart('cCAPE','wrapCAPE','tipCAPE',vals,xlbls,[],'#e879f9',v=>v.toFixed(1),bg);
+}
+
+// ── CALENDAR (last trading day of month) ──
+function buildCalendar(){
+  const grid=document.getElementById('calGrid');
+  const today=new Date();
+  const MNAMES='January February March April May June July August September October November December'.split(' ');
+  const DOWS='Su Mo Tu We Th Fr Sa'.split(' ');
+  function lastTradeDay(y,mo){
+    let d=new Date(y,mo+1,0); // last day of month
+    while(d.getDay()===0||d.getDay()===6) d.setDate(d.getDate()-1);
+    return d.getDate();
+  }
+  grid.innerHTML=[0,1,2].map(off=>{
+    const d=new Date(today.getFullYear(),today.getMonth()+off,1);
+    const y=d.getFullYear(),mo=d.getMonth();
+    const ltd=lastTradeDay(y,mo);
+    const dim=new Date(y,mo+1,0).getDate();
+    const sd=new Date(y,mo,1).getDay();
+    const isCur=y===today.getFullYear()&&mo===today.getMonth();
+    let h=DOWS.map(dw=>`<div class="cal-dow">${dw}</div>`).join('');
+    for(let i=0;i<sd;i++) h+=`<div class="cal-day"></div>`;
+    for(let day=1;day<=dim;day++){
+      const dow=new Date(y,mo,day).getDay();
+      const wknd=dow===0||dow===6;
+      const open=day===ltd;
+      const isToday=isCur&&day===today.getDate();
+      const cls=['cal-day',wknd?'wknd':'',open?'open':'',isToday?'today':''].filter(Boolean).join(' ');
+      h+=`<div class="${cls}">${day}</div>`;
+    }
+    return `<div class="cal-month"><div class="cal-mname">${MNAMES[mo]} ${y}</div><div class="cal-days">${h}</div></div>`;
+  }).join('');
+}
+
+// ── CAPE PARSER ──
 function parseCAPE(){
   const raw=document.getElementById('capePaste').value.trim();
   const st=document.getElementById('capeStatus');
   if(!raw){capeData=[];update();st.textContent='';return;}
-
   const regex=/([A-Z][a-z]+ \d+, \d{4})\s+([\d.]+)/g;
-  const rows=[];
-  let m;
-  while((m=regex.exec(raw))!==null){
-    rows.push({date:m[1], val:parseFloat(m[2])});
-  }
-
-  if(rows.length===0){
-    st.className='cape-status err';
-    st.textContent='Could not parse — make sure you copied the full table text.';
-    capeData=[];update();return;
-  }
-
-  // rows are newest-first from multpl
+  const rows=[];let m;
+  while((m=regex.exec(raw))!==null) rows.push({date:m[1],val:parseFloat(m[2])});
+  if(!rows.length){st.className='cape-status err';st.textContent='Could not parse — copy the full table text from multpl.com';capeData=[];update();return;}
   capeData=rows;
-  // Save to localStorage so it persists
   try{localStorage.setItem('capeData',JSON.stringify(capeData));}catch(e){}
-
   st.className='cape-status ok';
-  st.textContent=`✓ ${rows.length} data points loaded · ${rows[0].date}: ${rows[0].val}`;
+  st.textContent=`✓ ${rows.length} points · latest: ${rows[0].date} = ${rows[0].val}`;
   update();
 }
-
 function clearCAPE(){
   document.getElementById('capePaste').value='';
   document.getElementById('capeStatus').textContent='';
@@ -266,18 +662,15 @@ function clearCAPE(){
   try{localStorage.removeItem('capeData');}catch(e){}
   update();
 }
-
 function loadCAPEFromStorage(){
   try{
-    const stored=localStorage.getItem('capeData');
-    if(stored){
-      capeData=JSON.parse(stored);
-      const ta=document.getElementById('capePaste');
-      // Reconstruct the text so the textarea isn't empty
-      ta.value=capeData.map(r=>`${r.date}  ${r.val}`).join('\n');
+    const s=localStorage.getItem('capeData');
+    if(s){
+      capeData=JSON.parse(s);
+      document.getElementById('capePaste').value=capeData.map(r=>`${r.date}  ${r.val}`).join('\n');
       const st=document.getElementById('capeStatus');
       st.className='cape-status ok';
-      st.textContent=`✓ ${capeData.length} data points (saved) · ${capeData[0].date}: ${capeData[0].val}`;
+      st.textContent=`✓ ${capeData.length} points (saved) · latest: ${capeData[0].date} = ${capeData[0].val}`;
     }
   }catch(e){}
 }
@@ -294,15 +687,15 @@ async function fetchAll(){
   let ok=false;
   if(res[0].status==='fulfilled'){
     try{
-      const c=res[0].value.chart.result[0].indicators.quote[0].close.filter(v=>v!=null);
+      const d=res[0].value.chart.result[0];
+      const c=d.indicators.quote[0].close.filter(v=>v!=null);
+      const ts=d.timestamp;
       const ath=Math.max(...c),cur=c[c.length-1];
       live.dd=((ath-cur)/ath)*100;
-      live.ddH=c;        // raw closing prices for chart
-      live.ddATH=ath;    // ATH price for reference lines
-      live.ddTs=res[0].value.chart.result[0].timestamp;
-      document.getElementById('inDD').placeholder=live.dd.toFixed(1);
+      live.ddH=c;live.ddATH=ath;live.ddTs=ts;
+      document.getElementById('inDD').placeholder=live.dd.toFixed(2);
       ok=true;
-    }catch(e){}
+    }catch(e){console.error('SP500',e);}
   }
   if(res[1].status==='fulfilled'){
     try{
@@ -318,316 +711,94 @@ async function fetchAll(){
       live.vixTs=res[2].value.chart.result[0].timestamp;
     }catch(e){}
   }
-  live.ok=ok;
   const t=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
   st.className=ok?'fstat live':'fstat err';
-  st.textContent=ok?`Live · ${t}`:'Fetch failed — enter manually';
+  st.textContent=ok?`Live · ${t}`:'Fetch failed — enter values manually';
   update();
 }
 
-// ── CHART ENGINE ──
-function xS(i,n){return PL+(i/(n-1||1))*CW;}
-function yS(v,mn,mx){return PT+CH-((v-mn)/(mx-mn||1))*CH;}
-
-function niceScale(mn,mx,ticks){
-  const range=mx-mn;
-  const rough=range/ticks;
-  const mag=Math.pow(10,Math.floor(Math.log10(rough)));
-  const steps=[1,2,2.5,5,10];
-  const step=steps.find(s=>s*mag>=rough)*mag;
-  const lo=Math.floor(mn/step)*step;
-  const hi=Math.ceil(mx/step)*step;
-  const result=[];
-  for(let v=lo;v<=hi+step*.01;v+=step) if(v>=mn-step*.01) result.push(parseFloat(v.toFixed(10)));
-  return result;
-}
-
-function buildChart(svgId,outerDivId,tipId,vals,xLabels,refs,lineColor,yUnit,fmtFn,bgHtml){
-  const svg=document.getElementById(svgId);
-  if(!vals||vals.length<2){svg.innerHTML=bgHtml||'';return;}
-
-  const dataMin=Math.min(...vals);
-  const dataMax=Math.max(...vals);
-  const yMn=0;
-  const yMx=refs.length
-    ? Math.max(...refs.map(r=>r.v),dataMax)*1.1
-    : dataMax*1.15;
-
-  const yTicks=niceScale(yMn,yMx,5);
-  let h=bgHtml||'';
-
-  // Y gridlines + labels
-  yTicks.forEach(tick=>{
-    if(tick<yMn||tick>yMx*1.01) return;
-    const y=yS(tick,yMn,yMx).toFixed(1);
-    h+=`<line x1="${PL}" y1="${y}" x2="${W-PR}" y2="${y}" stroke="#1d1d1d" stroke-width="1"/>`;
-    h+=`<text x="${PL-5}" y="${(parseFloat(y)+3.5).toFixed(1)}" font-size="9" fill="#505050" text-anchor="end" font-family="IBM Plex Mono">${tick}${yUnit}</text>`;
-  });
-
-  // Reference lines
-  refs.forEach(r=>{
-    const y=yS(r.v,yMn,yMx).toFixed(1);
-    h+=`<line x1="${PL}" y1="${y}" x2="${W-PR}" y2="${y}" stroke="${r.c}" stroke-width="1.2" stroke-dasharray="5,4" opacity="0.55"/>`;
-    h+=`<text x="${W-PR-3}" y="${(parseFloat(y)-3).toFixed(1)}" font-size="9" fill="${r.c}" text-anchor="end" font-family="IBM Plex Sans" opacity="0.8">${r.l}</text>`;
-  });
-
-  // Data line
-  const pts=vals.map((v,i)=>`${xS(i,vals.length).toFixed(1)},${yS(v,yMn,yMx).toFixed(1)}`);
-  h+=`<polyline points="${pts.join(' ')}" fill="none" stroke="${lineColor}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" opacity="0.9"/>`;
-  const lp=pts[pts.length-1].split(',');
-  h+=`<circle cx="${lp[0]}" cy="${lp[1]}" r="4" fill="${lineColor}"/>`;
-
-  // X axis labels — spread evenly
-  if(xLabels&&xLabels.length>1){
-    const slots=Math.min(xLabels.length,7);
-    for(let i=0;i<slots;i++){
-      const idx=Math.round(i/(slots-1)*(xLabels.length-1));
-      const x=xS(idx,xLabels.length).toFixed(1);
-      h+=`<text x="${x}" y="${(H-6).toFixed(1)}" font-size="9" fill="#505050" text-anchor="middle" font-family="IBM Plex Mono">${xLabels[idx]}</text>`;
-    }
-  }
-
-  // Axis border line
-  h+=`<line x1="${PL}" y1="${PT}" x2="${PL}" y2="${PT+CH}" stroke="#282828" stroke-width="1"/>`;
-  h+=`<line x1="${PL}" y1="${PT+CH}" x2="${W-PR}" y2="${PT+CH}" stroke="#282828" stroke-width="1"/>`;
-
-  // Crosshair (hidden)
-  h+=`<line id="${svgId}_cx" x1="${PL}" y1="${PT}" x2="${PL}" y2="${PT+CH}" stroke="#ffffff" stroke-width="1" stroke-dasharray="3,3" opacity="0.3" display="none"/>`;
-  h+=`<circle id="${svgId}_dot" cx="${PL}" cy="${PT}" r="4" fill="${lineColor}" display="none"/>`;
-
-  svg.innerHTML=h;
-
-  // Scrub interaction
-  const outer=document.getElementById(outerDivId);
-  const tip=document.getElementById(tipId);
-
-  function scrub(clientX){
-    const rect=outer.getBoundingClientRect();
-    const svgX=(clientX-rect.left)*(W/rect.width);
-    const frac=Math.max(0,Math.min(1,(svgX-PL)/CW));
-    const idx=Math.round(frac*(vals.length-1));
-    const v=vals[idx];
-    const cx=document.getElementById(`${svgId}_cx`);
-    const dot=document.getElementById(`${svgId}_dot`);
-    const px=xS(idx,vals.length);
-    const py=yS(v,yMn,yMx);
-    if(cx){cx.setAttribute('x1',px.toFixed(1));cx.setAttribute('x2',px.toFixed(1));cx.setAttribute('display','inline');}
-    if(dot){dot.setAttribute('cx',px.toFixed(1));dot.setAttribute('cy',py.toFixed(1));dot.setAttribute('display','inline');}
-    const lbl=xLabels?xLabels[idx]||'':'';
-    tip.textContent=(lbl?lbl+' · ':'')+fmtFn(v);
-    tip.style.display='block';
-    const pxPct=((clientX-rect.left)/rect.width)*100;
-    tip.style.left=Math.max(15,Math.min(pxPct,85))+'%';
-  }
-  function hide(){
-    tip.style.display='none';
-    const cx=document.getElementById(`${svgId}_cx`);
-    const dot=document.getElementById(`${svgId}_dot`);
-    if(cx)cx.setAttribute('display','none');
-    if(dot)dot.setAttribute('display','none');
-  }
-  // Remove old listeners by cloning
-  const fresh=outer.cloneNode(true);
-  outer.parentNode.replaceChild(fresh,outer);
-  const tip2=document.getElementById(tipId);
-  fresh.addEventListener('mousemove',e=>scrub(e.clientX));
-  fresh.addEventListener('mouseleave',hide);
-  fresh.addEventListener('touchmove',e=>{e.preventDefault();scrub(e.touches[0].clientX);},{passive:false});
-  fresh.addEventListener('touchend',hide);
-}
-
-function tsToYear(ts){return new Date(ts*1000).getFullYear().toString().slice(2)+"'";}
-function tsToMon(ts){return new Date(ts*1000).toLocaleString('en',{month:'short'});}
-
-function drawDD(vals,timestamps,ath){
-  const xlbls=timestamps?timestamps.map(ts=>tsToYear(ts)):[];
-  const refs=ath?[
-    {v:ath,      c:'#4ade80',l:'ATH'},
-    {v:ath*0.95, c:'#facc15',l:'-5%'},
-    {v:ath*0.90, c:'#f97316',l:'-10%'},
-    {v:ath*0.80, c:'#f87171',l:'-20%'},
-  ]:[];
-  buildChart('cDD','outerDD','tipDD',vals,xlbls,refs,
-    '#60a5fa','',v=>'$'+Math.round(v).toLocaleString(),null);
-}
-
-function drawVIX(vals,timestamps){
-  const xlbls=timestamps?timestamps.map(ts=>tsToMon(ts)):[];
-  buildChart('cVIX','outerVIX','tipVIX',vals,xlbls,
-    [{v:15,c:'#4ade80',l:'calm 15'},{v:20,c:'#facc15',l:'watch 20'},{v:30,c:'#f97316',l:'fear 30'},{v:40,c:'#f87171',l:'panic 40'}],
-    '#60a5fa','',v=>v.toFixed(1),null);
-}
-
-function drawCAPE(data){
-  // data: [{date,val}] newest-first → reverse for chart
-  const pts=[...data].reverse();
-  const vals=pts.map(p=>p.val);
-  const xlbls=pts.map(p=>{
-    const yr=p.date.match(/\d{4}/);
-    return yr?yr[0].slice(2)+"'":p.date;
-  });
-
-  if(vals.length<1){document.getElementById('cCAPE').innerHTML='';return;}
-
-  const yMn=0, yMx=Math.max(48,...vals)*1.06;
-  const bands=[
-    {lo:0, hi:20,c:'#4ade80',l:'Cheap'},
-    {lo:20,hi:25,c:'#a3e635',l:'Fair'},
-    {lo:25,hi:30,c:'#facc15',l:'Pricey'},
-    {lo:30,hi:35,c:'#f97316',l:'Exp.'},
-    {lo:35,hi:60,c:'#f87171',l:'V.Exp'},
-  ];
-  let bg='';
-  bands.forEach(b=>{
-    const yTop=yS(Math.min(b.hi,yMx),yMn,yMx);
-    const yBot=yS(Math.max(b.lo,0),yMn,yMx);
-    const bh=Math.max(0,yBot-yTop);
-    bg+=`<rect x="${PL}" y="${yTop.toFixed(1)}" width="${CW}" height="${bh.toFixed(1)}" fill="${b.c}" opacity="0.09"/>`;
-    const my=(yTop+yBot)/2;
-    bg+=`<text x="${W-PR-4}" y="${(my+3.5).toFixed(1)}" font-size="8.5" fill="${b.c}" text-anchor="end" font-family="IBM Plex Sans" opacity="0.55">${b.l}</text>`;
-  });
-  [[20,'#a3e635'],[25,'#facc15'],[30,'#f97316'],[35,'#f87171']].forEach(([v,c])=>{
-    bg+=`<line x1="${PL}" y1="${yS(v,yMn,yMx).toFixed(1)}" x2="${W-PR}" y2="${yS(v,yMn,yMx).toFixed(1)}" stroke="${c}" stroke-width="0.7" opacity="0.3"/>`;
-  });
-
-  buildChart('cCAPE','outerCAPE','tipCAPE',vals,xlbls,[],
-    '#e879f9','',v=>v.toFixed(2),bg);
-}
-
-// ── RATING ──
-function rateDD(d){
-  if(d<5) return{label:"Near ATH",  th:"tg",mult:1.0, desc:`${d.toFixed(1)}% off ATH`};
-  if(d<10)return{label:"Mild Dip",  th:"ty",mult:1.75,desc:`${d.toFixed(1)}% off ATH`};
-  if(d<20)return{label:"Correction",th:"to",mult:2.5, desc:`${d.toFixed(1)}% off ATH`};
-  return       {label:"Bear Mkt",  th:"tr",mult:3.5, desc:`${d.toFixed(1)}% off ATH`};
-}
-function rateVIX(v){
-  if(v<15)return{label:"Complacent",th:"tg",factor:0.85,desc:"Low fear"};
-  if(v<20)return{label:"Normal",    th:"tg",factor:1.0, desc:"Calm"};
-  if(v<30)return{label:"Elevated",  th:"ty",factor:1.1, desc:"Anxiety rising"};
-  if(v<40)return{label:"High Fear", th:"to",factor:1.25,desc:"Fear"};
-  return        {label:"Panic",     th:"tr",factor:1.4, desc:"Panic selling"};
-}
-function rateCAPE(now,histVals){
-  let lf,ll,lt;
-  if     (now<20){lf=1.20;ll="Cheap";    lt="tg";}
-  else if(now<25){lf=1.10;ll="Fair";     lt="tg";}
-  else if(now<30){lf=1.00;ll="Pricey";   lt="ty";}
-  else if(now<35){lf=0.95;ll="Expensive";lt="to";}
-  else           {lf=0.90;ll="Very Exp.";lt="tr";}
-  let tf=1.0,tl="",td="→";
-  // Compare current to ~6 entries ago (6 years back in annual data)
-  const ref=histVals.length>=6?histVals[histVals.length-7]:histVals[0];
-  if(ref!==undefined){
-    const d=now-ref;
-    if     (d<-4){tf=1.15;tl="Compressing fast";td="↓↓";}
-    else if(d<-1){tf=1.08;tl="Compressing";     td="↓";}
-    else if(d<=1){tf=1.00;tl="Flat";            td="→";}
-    else if(d<=4){tf=0.92;tl="Expanding";       td="↑";}
-    else         {tf=0.85;tl="Expanding fast";  td="↑↑";}
-  }
-  return{lf,ll,lt,tf,tl,td,combined:lf*tf};
-}
-
-function setTh(id,th){
-  const el=document.getElementById(id);
-  el.className=el.className.replace(/\b(tg|ty|to|tr)\b/g,'').trim()+' '+th;
-}
-function explain(dd,vix,cape,cr,mult){
-  const p=[];
-  if(dd<5)       p.push("Market near all-time highs");
-  else if(dd<10) p.push(`Mild ${dd.toFixed(1)}% dip from ATH`);
-  else if(dd<20) p.push(`${dd.toFixed(1)}% correction in progress`);
-  else           p.push(`Deep ${dd.toFixed(1)}% bear market`);
-  if(vix<20)     p.push(`low fear (VIX ${vix.toFixed(0)})`);
-  else if(vix<30)p.push(`elevated anxiety (VIX ${vix.toFixed(0)})`);
-  else if(vix<40)p.push(`high fear (VIX ${vix.toFixed(0)})`);
-  else           p.push(`panic (VIX ${vix.toFixed(0)})`);
-  if(cape!==null&&cr){const tr=cr.tl?`, CAPE ${cr.td} ${cr.tl.toLowerCase()}`:'';p.push(`CAPE ${cape.toFixed(0)} — ${cr.ll.toLowerCase()}${tr}`);}
-  const act=mult>=3.5?"Deploy aggressively. Maximum buying signal.":
-            mult>=2.5?"Strong buying opportunity. Go well above baseline.":
-            mult>=1.5?"Add meaningfully above your baseline.":
-            mult>=1.0?"Market not on sale. Stick to baseline.":
-                      "Expensive + calm = minimum contribution.";
-  return p.join(" · ")+".\n\n"+act;
-}
-function fmt(n){return"$"+Math.round(n).toLocaleString("en-US");}
-
 // ── MAIN UPDATE ──
 function update(){
-  const base=parseFloat(document.getElementById("base").value)||0;
-  const dd =document.getElementById("inDD").value !==''?parseFloat(document.getElementById("inDD").value) :live.dd;
-  const vix=document.getElementById("inVIX").value!==''?parseFloat(document.getElementById("inVIX").value):live.vix;
-
-  // CAPE from paste data (newest first → [0] is current)
+  const base=parseFloat(document.getElementById('base').value)||0;
+  const ddRaw=document.getElementById('inDD').value;
+  const vixRaw=document.getElementById('inVIX').value;
+  const dd=ddRaw!==''?parseFloat(ddRaw):live.dd;
+  const vix=vixRaw!==''?parseFloat(vixRaw):live.vix;
   const capeNow=capeData.length>0?capeData[0].val:null;
-  // For trend: all values oldest→newest (reversed), excluding the most recent
-  const capeHist=[...capeData].reverse().map(p=>p.val);
 
-  // Charts
-  if(live.ddH.length>1) drawDD(live.ddH,live.ddTs||null,live.ddATH||null);
-  if(live.vixH.length>1)drawVIX(live.vixH,live.vixTs||null);
+  // Redraw charts
+  if(live.ddH.length>1) drawDD(live.ddH,live.ddTs,live.ddATH);
+  if(live.vixH.length>1) drawVIX(live.vixH,live.vixTs);
   if(capeData.length>0) drawCAPE(capeData);
 
-  // DD card
+  // Drawdown signal
   if(dd!==null&&!isNaN(dd)){
-    const dr=rateDD(dd);setTh('sigDD',dr.th);
-    document.getElementById('valDD').textContent=dd.toFixed(1)+'%';
-    document.getElementById('pillDD').textContent=dr.label;
-    document.getElementById('subDD').textContent=dr.desc;
+    const tier=rateDD(dd);
+    document.getElementById('valDD').textContent=dd.toFixed(2)+'%';
+    document.getElementById('valDD').className='sig-val '+tier.sigCls;
+    document.getElementById('pillDD').textContent=tier.label;
+    document.getElementById('pillDD').className='sig-pill '+tier.sigCls;
+    document.getElementById('subDD').textContent=dd.toFixed(2)+'% below ATH';
+    document.getElementById('subDD').className='sig-sub '+tier.sigCls;
+    setSigClass('sigDD', tier.sigCls);
   }
-  // VIX card
+
+  // VIX signal
   if(vix!==null&&!isNaN(vix)){
-    const vr=rateVIX(vix);setTh('sigVIX',vr.th);
+    const vr=rateVIX(vix);
     document.getElementById('valVIX').textContent=vix.toFixed(1);
+    document.getElementById('valVIX').className='sig-val '+vr.cls;
     document.getElementById('pillVIX').textContent=vr.label;
-    document.getElementById('subVIX').textContent=vr.desc;
+    document.getElementById('pillVIX').className='sig-pill '+vr.cls;
+    document.getElementById('subVIX').textContent='context only';
+    document.getElementById('subVIX').className='sig-sub '+vr.cls;
+    setSigClass('sigVIX', vr.cls);
   }
-  // CAPE card
+
+  // CAPE signal
   if(capeNow!==null&&!isNaN(capeNow)){
-    const cr=rateCAPE(capeNow,capeHist);setTh('sigCAPE',cr.lt);
+    const cr=rateCAPE(capeNow);
     document.getElementById('valCAPE').textContent=capeNow.toFixed(1);
-    document.getElementById('pillCAPE').textContent=cr.ll;
-    document.getElementById('subCAPE').textContent=cr.td+' '+(cr.tl||'no trend yet');
+    document.getElementById('valCAPE').className='sig-val '+cr.cls;
+    document.getElementById('pillCAPE').textContent=cr.label;
+    document.getElementById('pillCAPE').className='sig-pill '+cr.cls;
+    document.getElementById('subCAPE').textContent='context only';
+    document.getElementById('subCAPE').className='sig-sub '+cr.cls;
+    setSigClass('sigCAPE', cr.cls);
   }
 
   // Tier table
-  const act=(dd!==null&&!isNaN(dd))?TIERS.find(t=>dd>=t.min&&dd<t.max):null;
-  document.getElementById("tierLbl").textContent=`Drawdown tiers · base ${fmt(base)}`;
-  document.getElementById("tierTable").innerHTML=TIERS.map(t=>`
-    <div class="trow" style="opacity:${t===act?1:0.28}">
-      <div class="dot" style="background:${t.accent}"></div>
-      <div class="tn">${t.label}</div>
-      <div class="tr2">${t.range}</div>
-      <div class="tm" style="color:${t.accent}">${t.mult}×</div>
-      <div class="ta">${fmt(base*t.mult)}</div>
+  const activeTier=dd!==null&&!isNaN(dd)?DISPLAY_TIERS.find(t=>dd>=t.min&&dd<t.max):null;
+  document.getElementById('tierLabel').textContent=`Drawdown tiers · base ${fmt(base)}`;
+  document.getElementById('tierTable').innerHTML=DISPLAY_TIERS.map(t=>`
+    <div class="trow ${t===activeTier?'active':'dim'}">
+      <div class="t-dot" style="background:${t.accent}"></div>
+      <div class="t-name">${t.label}</div>
+      <div class="t-range">${t.range}</div>
+      <div class="t-mult" style="color:${t.accent}">${t.mult}×</div>
+      <div class="t-amt">${fmt(base*t.mult)}</div>
     </div>`).join('');
 
-  // Rec
-  if(dd!==null&&!isNaN(dd)&&vix!==null&&!isNaN(vix)){
-    const dr=rateDD(dd),vr=rateVIX(vix);
-    const cr=(capeNow!==null&&!isNaN(capeNow))?rateCAPE(capeNow,capeHist):null;
-    const raw=dr.mult*vr.factor*(cr?cr.combined:1.0);
-    const mult=Math.max(0.5,Math.min(5.0,raw));
-    const tier=TIERS.find(t=>dd>=t.min&&dd<t.max);
+  // Main recommendation
+  if(dd!==null&&!isNaN(dd)){
+    const tier=rateDD(dd);
+    const inv=base*tier.mult;
     const rc=document.getElementById('recCard');
-    rc.style.background=tier.bg;rc.style.borderColor=tier.border;
-    const me=document.getElementById('recMult');
-    me.textContent=mult.toFixed(2)+'×';me.style.color=tier.accent;
-    const cc=cr?`<div class="chip">CAPE ×${cr.combined.toFixed(2)}</div>`:'';
-    document.getElementById('chips').innerHTML=
-      `<div class="chip">DD ${dr.mult}×</div><div class="chip">VIX ×${vr.factor.toFixed(2)}</div>${cc}
-       <div class="chip" style="color:${tier.accent};border-color:${tier.border}">= ${mult.toFixed(2)}×</div>`;
-    document.getElementById('rexp').textContent=explain(dd,vix,capeNow,cr,mult);
-    if(base>0){
-      document.getElementById('recTotal').textContent=fmt(Math.round(base*mult));
-      document.getElementById('recTotal').style.color=tier.accent;
-    }
+    rc.className='rec tier-'+Math.min(4,TIERS.indexOf(tier));
+    rc.style.borderColor=tier.border;
+    document.getElementById('recTierName').textContent=tier.label+' · '+tier.range;
+    document.getElementById('recTierName').style.color=tier.accent;
+    document.getElementById('recMult').textContent=tier.mult+'×';
+    document.getElementById('recMult').style.color=tier.accent;
+    document.getElementById('recInvest').textContent=base>0?fmt(inv):'—';
+    document.getElementById('recInvest').style.color=tier.accent;
+    document.getElementById('recExplain').textContent=explain(dd,tier,vix,capeNow);
   }
 }
 
 // ── INIT ──
 loadCAPEFromStorage();
+buildCalendar();
 update();
 fetchAll();
 </script>
